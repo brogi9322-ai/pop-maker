@@ -8,10 +8,14 @@ export default function Header({
   onPrint,
   onSaveTemplate,
   onLoadTemplates,
+  onExportJson,
+  onImportJson,
   onUndo,
   onRedo,
   canUndo,
   canRedo,
+  darkMode,
+  onToggleDarkMode,
 }) {
   const displayBiz = bizNumber
     ? bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')
@@ -58,6 +62,13 @@ export default function Header({
         <button className="btn btn-secondary" onClick={onSaveTemplate}>
           💾 저장
         </button>
+        <button className="btn btn-secondary" onClick={onExportJson} title="작업물을 JSON 파일로 내보내기">
+          📤 JSON 내보내기
+        </button>
+        <label className="btn btn-secondary" style={{ cursor: 'pointer' }} title="JSON 파일로 작업물 가져오기">
+          📥 JSON 가져오기
+          <input type="file" accept=".json" style={{ display: 'none' }} onChange={onImportJson} />
+        </label>
         <div className="header-divider" />
         <button className="btn btn-primary" onClick={onSavePng}>
           🖼 PNG
@@ -67,6 +78,15 @@ export default function Header({
         </button>
         <button className="btn btn-success" onClick={onPrint}>
           🖨 인쇄
+        </button>
+        <div className="header-divider" />
+        <button
+          className="btn-icon"
+          onClick={onToggleDarkMode}
+          title={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          aria-label={darkMode ? '라이트 모드' : '다크 모드'}
+        >
+          {darkMode ? '☀️' : '🌙'}
         </button>
       </div>
     </header>
