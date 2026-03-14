@@ -19,9 +19,9 @@
 
 | 항목 | 내용 |
 |------|------|
-| 전체 진행률 | 60% |
+| 전체 진행률 | 75% |
 | 현재 Phase | Phase 1 |
-| 다음 마일스톤 | MVP 배포 |
+| 다음 마일스톤 | Firestore 저장 안정화 + Sprint 4 AI 이미지 생성 |
 
 ---
 
@@ -54,12 +54,17 @@
 - ✅ 3패널 레이아웃 개선 — 좌: 템플릿/레이어 탭 | 중: 캔버스 | 우: 속성 패널
 - ✅ 캔버스 규격 프리셋 + 직접 입력
 
-### Sprint 3: 내보내기 + Firebase Hosting 배포 (P0) 🔄
+### Sprint 3: 내보내기 + Firebase Hosting 배포 (P0) ✅
 
-- ⬜ PNG 내보내기 최적화 (3초 이내)
-- ⬜ PDF 내보내기 품질 개선
-- ⬜ Firebase Hosting 배포 설정
-- ⬜ JSON 템플릿 내보내기/가져오기
+- ✅ PNG 내보내기 최적화 (scale:2, 날짜 파일명)
+- ✅ PDF 내보내기 품질 개선 (mm 단위 변환)
+- ✅ Firebase Hosting 배포 설정 → https://pop-maker-9209f.web.app
+- ✅ JSON 템플릿 내보내기/가져오기
+- ✅ 인라인 텍스트 편집 (더블클릭)
+- ✅ 캔버스 경계 클램핑, 사이즈 변경 시 비례 이동
+- ✅ Ctrl+C/V 복사·붙여넣기, Delete/Backspace 삭제
+- ✅ 에셋 패널 (약국 SVG 아이콘 23개)
+- ✅ 토스트 UI + 디자인 시스템 (CSS 변수, 다크모드)
 
 ### Sprint 4: AI 이미지 생성 (P1)
 
@@ -100,7 +105,7 @@
 | 마일스톤 | 상태 |
 |---------|------|
 | Phase 1 편집 기능 완성 | 🔄 진행 중 |
-| MVP Firebase Hosting 배포 | 📋 예정 |
+| MVP Firebase Hosting 배포 | ✅ 완료 (https://pop-maker-9209f.web.app) |
 | AI 이미지 생성 기능 추가 | 📋 예정 |
 | 밴플러스 서버 실인증 연동 | 📋 예정 |
 

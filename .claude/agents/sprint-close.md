@@ -18,8 +18,9 @@ color: green
 5. sprint 문서에 결과 기록
 6. ROADMAP.md 업데이트
 7. PR 생성 (sprint{N} → develop)
-8. sprint-planner MEMORY.md 업데이트
-9. 최종 보고
+8. deploy.md 업데이트 (아카이빙)
+9. sprint-planner MEMORY.md 업데이트
+10. 최종 보고
 
 ---
 
@@ -260,7 +261,51 @@ EOF
 
 ---
 
-## 8단계: sprint-planner MEMORY.md 업데이트
+## 8단계: deploy.md 업데이트 (아카이빙)
+
+배포 이력을 기록하고 아카이빙합니다.
+
+**1. 기존 완료 기록 아카이빙**
+
+`deploy.md`에 이미 완료된 기록이 있으면 `docs/deploy-history/YYYY-MM-DD.md`로 이동합니다.
+- 해당 날짜 파일이 이미 존재하면 파일 **상단**에 추가합니다.
+- `docs/deploy-history/` 디렉토리가 없으면 생성합니다.
+
+**2. deploy.md에 이번 스프린트 기록 추가**
+
+```markdown
+### Sprint {N} 완료 — {날짜}
+
+PR: {PR URL}
+
+포함된 주요 기능:
+- {기능 1}
+- {기능 2}
+
+검증 결과:
+- ✅ npm run lint 경고 없음
+- ✅ npm test {X}개 통과
+- ✅ npm run build 성공
+
+수동 검증 필요 항목:
+- ⬜ 로컬 `npm run dev`로 주요 기능 동작 확인
+- ⬜ {스프린트 관련 추가 수동 검증 항목}
+
+상세 리뷰 결과: `docs/sprint/sprint{N}.md` 참조
+```
+
+**3. `docs/sprint/sprint{N}.md`에 deploy.md 링크 추가**
+
+sprint 문서 하단에 아래 한 줄을 추가합니다:
+```markdown
+배포 이력: `deploy.md` 및 `docs/deploy-history/YYYY-MM-DD.md` 참조
+```
+
+`deploy.md`가 없으면 새로 생성합니다.
+
+---
+
+## 9단계: sprint-planner MEMORY.md 업데이트
 
 `.claude/agent-memory/sprint-planner/MEMORY.md`를 업데이트합니다:
 
@@ -271,7 +316,7 @@ EOF
 
 ---
 
-## 9단계: 최종 보고
+## 10단계: 최종 보고
 
 사용자에게 보고합니다:
 
