@@ -4,6 +4,7 @@ import {
   getAllTemplates,
   getBanplusMyTemplates,
   deleteTemplate,
+  updateTemplateVisibility,
   getUserId,
 } from '../utils/storage';
 
@@ -12,8 +13,9 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [togglingId, setTogglingId] = useState(null); // 공개 토글 중인 템플릿 ID
 
-  // 현재 사용자 ID (삭제 버튼 표시 기준)
+  // 현재 사용자 ID (삭제/토글 버튼 표시 기준)
   const myUserId = isBanplus
     ? `biz_${bizNumber.replace(/-/g, '')}`
     : getUserId();
@@ -31,7 +33,12 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
       }
       setTemplates(data);
     } catch (e) {
-      setError('불러오기 실패: ' + e.message);
+      const code = e?.code || '';
+      if (code === 'unavailable' || (e.message || '').includes('network')) {
+        setError('네트워크 연결을 확인해 주세요.');
+      } else {
+        setError('템플릿을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      }
     } finally {
       setLoading(false);
     }
@@ -47,9 +54,40 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
     try {
       await deleteTemplate(id);
       setTemplates((prev) => prev.filter((t) => t.id !== id));
-    } catch (e) {
-      alert('삭제 실패: ' + e.message);
+    } catch (err) {
+      console.error('삭제 실패:', err);
+      setError('삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     }
+  }
+
+  async function handleTogglePublic(tpl, e) {
+    e.stopPropagation();
+    setTogglingId(tpl.id);
+    try {
+      await updateTemplateVisibility(tpl.id, !tpl.isPublic);
+      setTemplates((prev) =>
+        prev.map((t) => (t.id === tpl.id ? { ...t, isPublic: !tpl.isPublic } : t))
+      );
+    } catch (err) {
+      console.error('공개 설정 변경 실패:', err);
+      setError('공개 설정 변경에 실패했습니다.');
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
+  const [copiedId, setCopiedId] = useState(null); // 링크 복사 성공 피드백용
+
+  function handleCopyLink(id, e) {
+    e.stopPropagation();
+    const url = `${window.location.origin}/share/${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      // 버튼 텍스트로 복사 성공 피드백 제공
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }).catch(() => {
+      setError('링크 복사에 실패했습니다. 수동으로 복사해 주세요.');
+    });
   }
 
   return (
@@ -105,12 +143,31 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
                     </span>
                   </div>
                   {isOwner && (
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={(e) => handleDelete(tpl.id, e)}
-                    >
-                      삭제
-                    </button>
+                    <div className="saved-template-actions" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className={`btn btn-sm ${tpl.isPublic ? 'btn-success' : 'btn-secondary'}`}
+                        onClick={(e) => handleTogglePublic(tpl, e)}
+                        disabled={togglingId === tpl.id}
+                        title={tpl.isPublic ? '공개 중 — 클릭 시 비공개로 변경' : '비공개 — 클릭 시 공개로 변경'}
+                      >
+                        {tpl.isPublic ? '🔓 공개' : '🔒 비공개'}
+                      </button>
+                      {tpl.isPublic && (
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={(e) => handleCopyLink(tpl.id, e)}
+                          title="공유 링크 복사"
+                        >
+                          {copiedId === tpl.id ? '✅ 복사됨' : '🔗 링크 복사'}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={(e) => handleDelete(tpl.id, e)}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   )}
                 </div>
               );

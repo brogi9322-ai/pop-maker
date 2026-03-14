@@ -54,6 +54,20 @@ Firebase 값은 [Firebase Console](https://console.firebase.google.com/) → 프
 
 ---
 
+## 3-1. 주요 프론트엔드 의존성
+
+| 패키지 | 용도 |
+|--------|------|
+| `react`, `react-dom` | UI 프레임워크 |
+| `react-router-dom` | SPA 라우팅 (`/share/:id` 공유 페이지) |
+| `firebase` | Firestore, Auth, Storage, Hosting |
+| `html2canvas` | 캔버스 → PNG/PDF 내보내기 |
+| `jspdf` | PDF 생성 |
+
+> `npm install` 실행 시 위 패키지들이 모두 설치됩니다.
+
+---
+
 ## 4. 로컬 개발 서버 실행
 
 ```bash
