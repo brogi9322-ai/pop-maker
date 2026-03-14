@@ -20,10 +20,13 @@
 ## 주요 명령어
 
 ```bash
-npm run dev       # 개발 서버 실행 (localhost:5173)
-npm run build     # 프로덕션 빌드
-npm run preview   # 빌드 결과 미리보기
-npm run lint      # ESLint 실행
+npm run dev           # 개발 서버 실행 (localhost:5173)
+npm run build         # 프로덕션 빌드
+npm run preview       # 빌드 결과 미리보기
+npm run lint          # ESLint 실행
+npm test              # 테스트 1회 실행 (CI용)
+npm run test:watch    # 파일 변경 감지 테스트 (개발 중)
+npm run test:coverage # 커버리지 리포트 생성
 ```
 
 ## 디렉토리 구조
@@ -134,10 +137,11 @@ hotfix/*  →  PR to main  →  배포  →  main을 develop에 역머지
   - `main` 기반으로 `hotfix/{설명}` 브랜치를 생성합니다. (worktree 사용하지 말아주세요)
   - 구현 완료 후 hotfix-close agent를 사용하여 마무리 작업(PR to main, deploy.md 기록)을 수행합니다.
 
-- **커밋 전 코드 리뷰를 반드시 수행합니다:**
+- **커밋 전 코드 리뷰 및 검증을 반드시 수행합니다:**
   1. 변경된 파일 전체를 읽고 아래 항목을 검토합니다.
-  2. 문제가 발견되면 커밋 전에 즉시 수정합니다.
-  3. 수정 후 재검토하여 이상 없음을 확인한 뒤 커밋합니다.
+  2. `npm run lint` → `npm test` → `npm run build` 순서로 실행하여 모두 통과하는지 확인합니다.
+  3. 문제가 발견되면 커밋 전에 즉시 수정합니다.
+  4. 새 기능을 추가했다면 관련 테스트도 함께 작성합니다 (hooks/utils는 필수, components는 권장).
 
   **보안 체크리스트**:
   - 하드코딩된 API 키, 비밀번호, 토큰 없음
@@ -186,6 +190,64 @@ hotfix/*  →  PR to main  →  배포  →  main을 develop에 역머지
 - 체크리스트 작성 형식:
   - 완료 항목: `- ✅ 항목 내용`
   - 미완료 항목: `- ⬜ 항목 내용`
+
+## 테스트
+
+### 스택
+
+- **Vitest**: Vite 네이티브 테스트 러너 (vite.config.js에 설정)
+- **@testing-library/react**: 컴포넌트 렌더링 및 DOM 쿼리
+- **@testing-library/user-event**: 실제 사용자 인터랙션 시뮬레이션
+- **@testing-library/jest-dom**: `toBeInTheDocument()` 등 DOM 매처
+
+### 파일 위치 규칙
+
+- 테스트 파일은 테스트 대상 파일과 **같은 디렉토리**에 배치
+- 파일명: `{소스파일명}.test.{js|jsx}`
+  - 예: `useHistory.js` → `useHistory.test.js`
+  - 예: `Toast.jsx` → `Toast.test.jsx`
+- 공통 setup은 `src/test/setup.js` (jest-dom import)
+
+### 계층별 테스트 전략
+
+| 계층 | 테스트 종류 | 우선순위 | 도구 |
+|------|-----------|---------|------|
+| `src/hooks/` | 단위 테스트 (순수 로직) | **필수** | `renderHook`, `act` |
+| `src/components/` | 컴포넌트 테스트 (렌더링 + 이벤트) | **권장** | `render`, `userEvent` |
+| `src/utils/` | 단위 테스트 (순수 함수) | **필수** | 일반 vitest |
+| `src/App.jsx` | 통합 테스트 | 선택 (복잡도 고려) | `render` + mock |
+
+### 작성 규칙
+
+- **훅 테스트**: `renderHook` + `act`로 상태 변화 검증. Firebase 등 외부 의존성은 `vi.mock()`으로 목킹
+- **컴포넌트 테스트**: 구현 세부사항(state, ref)이 아닌 **사용자가 보는 것**(텍스트, 버튼 활성화, aria 속성)을 검증
+- **이벤트 테스트**: `fireEvent` 대신 `userEvent` 사용 (실제 브라우저 동작과 가까움)
+- **타이머가 있는 테스트**: `vi.useFakeTimers()` + `vi.advanceTimersByTime()` 사용 후 `vi.useRealTimers()`로 복원
+
+### 커밋 전 검증 순서
+
+```
+npm run lint    # 1. 린트 통과
+npm test        # 2. 테스트 통과
+npm run build   # 3. 빌드 성공
+```
+
+### Firebase 목킹 패턴
+
+Firebase SDK는 테스트에서 직접 호출하지 않고 항상 목킹합니다:
+
+```js
+vi.mock('../firebase', () => ({
+  db: {},
+  auth: {},
+}));
+
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  addDoc: vi.fn().mockResolvedValue({ id: 'mock-id' }),
+  // ...
+}));
+```
 
 ## 컨벤션
 
