@@ -30,9 +30,10 @@ git log main --oneline -5       # main 현재 상태 확인
 git diff main...develop --stat  # develop과 main 차이 요약
 ```
 
-**빌드/린트 검증:**
+**빌드/린트/테스트 검증:**
 ```bash
 npm run lint    # ESLint 경고 없음 확인
+npm test        # 단위/통합 테스트 전체 통과 확인
 npm run build   # 빌드 성공 확인
 ```
 
@@ -63,6 +64,7 @@ gh pr create \
 
 ## 사전 점검
 - ✅ npm run lint 통과
+- ✅ npm test 통과
 - ✅ npm run build 성공
 - ✅ 로컬 검증 완료
 
@@ -88,6 +90,7 @@ EOF
 PR: {PR URL}
 
 - ✅ lint 통과
+- ✅ test 통과
 - ✅ build 성공
 - ✅ main merge → GitHub Actions 자동 배포
 

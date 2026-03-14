@@ -8,6 +8,8 @@ export default function Header({
   onPrint,
   onSaveTemplate,
   onLoadTemplates,
+  onExportJson,
+  onImportJson,
   onUndo,
   onRedo,
   canUndo,
@@ -60,6 +62,13 @@ export default function Header({
         <button className="btn btn-secondary" onClick={onSaveTemplate}>
           💾 저장
         </button>
+        <button className="btn btn-secondary" onClick={onExportJson} title="작업물을 JSON 파일로 내보내기">
+          📤 JSON 내보내기
+        </button>
+        <label className="btn btn-secondary" style={{ cursor: 'pointer' }} title="JSON 파일로 작업물 가져오기">
+          📥 JSON 가져오기
+          <input type="file" accept=".json" style={{ display: 'none' }} onChange={onImportJson} />
+        </label>
         <div className="header-divider" />
         <button className="btn btn-primary" onClick={onSavePng}>
           🖼 PNG

@@ -222,6 +222,7 @@ export const TEMPLATES = [
 export const CATEGORIES = [...new Set(TEMPLATES.map((t) => t.category))];
 
 export const CANVAS_SIZES = [
+  { label: 'POP (300×300)', width: 300, height: 300 },
   { label: 'A4 세로', width: 794, height: 1123 },
   { label: 'A4 가로', width: 1123, height: 794 },
   { label: 'A5 세로', width: 559, height: 794 },

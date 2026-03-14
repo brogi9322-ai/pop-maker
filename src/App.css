@@ -280,6 +280,65 @@ body {
   word-break: keep-all;
 }
 
+/* ===== Asset Panel ===== */
+.asset-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.asset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.asset-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 6px;
+  transition: transform 0.15s;
+}
+.asset-item:hover { transform: scale(1.06); }
+
+.asset-preview {
+  width: 62px;
+  height: 62px;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  object-fit: contain;
+}
+
+.asset-name {
+  font-size: 10px;
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.2;
+  word-break: keep-all;
+  opacity: 0.75;
+}
+
+.asset-admin-notice {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border);
+}
+.asset-admin-notice p {
+  font-size: 11px;
+  color: var(--color-text);
+  opacity: 0.6;
+  text-align: center;
+  margin: 0;
+}
+
 /* ===== Size Buttons ===== */
 .size-buttons {
   display: flex;

@@ -1,17 +1,62 @@
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 
 const CanvasEditor = forwardRef(function CanvasEditor(
-  { template, canvasSize, elements, setElements, selectedId, setSelectedId, startDrag, commitDrag },
+  { template, canvasSize, elements, setElements, selectedId, setSelectedId, startDrag, commitDrag, pushSnapshot },
   ref
 ) {
   const canvasRef = useRef(null);
   const dragState = useRef(null);
   const resizeState = useRef(null);
+  const editRef = useRef(null);
+  const [editingId, setEditingId] = useState(null);
+
+  // 편집 모드 진입 시 포커스 및 커서를 끝으로 이동
+  useEffect(() => {
+    if (!editingId || !editRef.current) return;
+    const el = elements.find((e) => e.id === editingId);
+    if (!el) return;
+    editRef.current.innerText = el.text;
+    editRef.current.focus();
+    const range = document.createRange();
+    range.selectNodeContents(editRef.current);
+    range.collapse(false);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+  }, [editingId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 외부에서 캔버스 DOM 접근용
   useImperativeHandle(ref, () => ({
     getCanvas: () => canvasRef.current,
   }));
+
+  // 편집 내용 커밋
+  function commitEdit(el) {
+    if (!editRef.current) return;
+    const newText = editRef.current.innerText;
+    // React가 children을 렌더링하기 전에 DOM 내용을 비워 중복 출력 방지
+    editRef.current.textContent = '';
+    setEditingId(null);
+    if (newText !== el.text) {
+      pushSnapshot(elements.map((item) => item.id === el.id ? { ...item, text: newText } : item));
+    }
+  }
+
+  // 텍스트 더블클릭 → 편집 모드
+  function handleTextDoubleClick(e, el) {
+    e.stopPropagation();
+    if (el.locked) return;
+    setSelectedId(el.id);
+    setEditingId(el.id);
+  }
+
+  // 편집 중 키 입력
+  function handleEditKeyDown(e) {
+    e.stopPropagation(); // Ctrl+Z 등 단축키 충돌 방지
+    if (e.key === 'Escape') {
+      editRef.current.textContent = ''; // React children 렌더링 전 DOM 클리어
+      setEditingId(null);
+    }
+  }
 
   // 캔버스 클릭 (선택 해제)
   function handleCanvasClick(e) {
@@ -43,11 +88,14 @@ const CanvasEditor = forwardRef(function CanvasEditor(
     if (!dragState.current) return;
     const { id, startX, startY } = dragState.current;
     setElements((prev) =>
-      prev.map((el) =>
-        el.id === id
-          ? { ...el, x: e.clientX - startX, y: e.clientY - startY }
-          : el
-      )
+      prev.map((el) => {
+        if (el.id !== id) return el;
+        const elW = el.width || 60;
+        const elH = el.height || (el.type === 'text' ? Math.round(el.fontSize * el.lineHeight + 16) : 30);
+        const newX = Math.max(0, Math.min(canvasSize.width - elW, e.clientX - startX));
+        const newY = Math.max(0, Math.min(canvasSize.height - elH, e.clientY - startY));
+        return { ...el, x: newX, y: newY };
+      })
     );
   }
 
@@ -143,10 +191,14 @@ const CanvasEditor = forwardRef(function CanvasEditor(
           const isSelected = el.id === selectedId;
 
           if (el.type === 'text') {
+            const isEditing = editingId === el.id;
             return (
               <div
                 key={el.id}
+                ref={isEditing ? editRef : null}
                 className={`canvas-element text-element ${isSelected ? 'selected' : ''}`}
+                contentEditable={isEditing || undefined}
+                suppressContentEditableWarning
                 style={{
                   position: 'absolute',
                   left: el.x,
@@ -165,18 +217,23 @@ const CanvasEditor = forwardRef(function CanvasEditor(
                     ? '2px dashed #0066ff'
                     : `${el.borderWidth || 0}px solid ${el.borderColor || 'transparent'}`,
                   padding: '8px 12px',
-                  cursor: 'move',
-                  userSelect: 'none',
+                  cursor: isEditing ? 'text' : 'move',
+                  userSelect: isEditing ? 'text' : 'none',
+                  outline: 'none',
                   transform: `rotate(${el.rotate || 0}deg)`,
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                   zIndex: el.zIndex || 1,
                   boxSizing: 'border-box',
                 }}
-                onMouseDown={(e) => handleMouseDown(e, el.id)}
+                onMouseDown={isEditing ? (e) => e.stopPropagation() : (e) => handleMouseDown(e, el.id)}
+                onDoubleClick={(e) => handleTextDoubleClick(e, el)}
+                onBlur={isEditing ? () => commitEdit(el) : undefined}
+                onKeyDown={isEditing ? handleEditKeyDown : undefined}
               >
-                {el.text}
-                {isSelected && !el.locked && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
+                {/* 편집 모드에서는 useEffect로 innerText 직접 설정하므로 children 렌더링 안 함 */}
+                {!isEditing && el.text}
+                {isSelected && !el.locked && !isEditing && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
               </div>
             );
           }

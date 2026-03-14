@@ -4,6 +4,7 @@ import TemplatePanel from './components/TemplatePanel';
 import CanvasEditor from './components/CanvasEditor';
 import PropsPanel from './components/PropsPanel';
 import LayerPanel from './components/LayerPanel';
+import AssetPanel from './components/AssetPanel';
 import Toast from './components/Toast';
 import BanplusModal from './components/BanplusModal';
 import SavedTemplatesModal from './components/SavedTemplatesModal';
@@ -26,6 +27,7 @@ export default function App() {
   const [showBanplusModal, setShowBanplusModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [currentDocId, setCurrentDocId] = useState(null);
+  const [currentDocName, setCurrentDocName] = useState('내 POP 템플릿');
   const [saving, setSaving] = useState(false);
   const [leftTab, setLeftTab] = useState('template'); // 'template' | 'layer'
   const [darkMode, setDarkMode] = useState(() => {
@@ -42,8 +44,8 @@ export default function App() {
   }, [darkMode]);
 
   // 직접 입력 캔버스 크기
-  const [customWidth, setCustomWidth] = useState('');
-  const [customHeight, setCustomHeight] = useState('');
+  const [customWidth, setCustomWidth] = useState(String(CANVAS_SIZES[0].width));
+  const [customHeight, setCustomHeight] = useState(String(CANVAS_SIZES[0].height));
 
   const canvasRef = useRef(null);
 
@@ -55,12 +57,15 @@ export default function App() {
 
   const selectedEl = elements.find((el) => el.id === selectedId) || null;
 
-  // Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y 단축키
+  const clipboardEl = useRef(null);
+
+  // Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y / Ctrl+C / Ctrl+V 단축키
   useEffect(() => {
     function handleKeyDown(e) {
-      // 텍스트 입력 중에는 단축키 무시
+      // 텍스트 입력 중(input, textarea, contenteditable)에는 단축키 무시
       const tag = document.activeElement?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (document.activeElement?.isContentEditable) return;
 
       if (e.ctrlKey && e.shiftKey && e.key === 'Z') {
         e.preventDefault();
@@ -71,15 +76,68 @@ export default function App() {
       } else if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) {
         e.preventDefault();
         redo();
+      } else if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+        if (!selectedId) return;
+        const el = elements.find((el) => el.id === selectedId);
+        if (el) clipboardEl.current = el;
+      } else if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
+        if (!clipboardEl.current) return;
+        e.preventDefault();
+        const el = clipboardEl.current;
+        const elW = el.width || 60;
+        const elH = el.height || (el.type === 'text' ? Math.round(el.fontSize * el.lineHeight + 16) : 30);
+        const newEl = {
+          ...el,
+          id: genId(),
+          x: Math.min(el.x + 10, canvasSize.width - elW),
+          y: Math.min(el.y + 10, canvasSize.height - elH),
+          zIndex: elements.length + 1,
+        };
+        pushSnapshot([...elements, newEl]);
+        setSelectedId(newEl.id);
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (!selectedId) return;
+        const el = elements.find((el) => el.id === selectedId);
+        if (!el || el.locked) return;
+        e.preventDefault();
+        pushSnapshot(elements.filter((el) => el.id !== selectedId));
+        setSelectedId(null);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, elements, selectedId, canvasSize, pushSnapshot, setSelectedId]);
 
   function handleSelectTemplate(tpl) {
     setTemplate(tpl);
-    pushSnapshot([]);
+    const fontSize = 48;
+    const lineHeight = 1.4;
+    // CanvasEditor의 padding: '8px 12px' 반영하여 정확한 수직 중앙 계산
+    const elHeight = fontSize * lineHeight + 16; // 16 = padding-top(8) + padding-bottom(8)
+    const defaultEl = {
+      id: genId(),
+      type: 'text',
+      name: '텍스트',
+      text: tpl.defaultText || '텍스트 입력',
+      x: 0,
+      y: Math.round(canvasSize.height / 2 - elHeight / 2),
+      width: canvasSize.width,
+      fontFamily: "'Noto Sans KR', sans-serif",
+      fontSize,
+      fontWeight: '700',
+      color: tpl.textColor || '#333333',
+      bgColor: 'transparent',
+      textAlign: 'center',
+      lineHeight,
+      letterSpacing: 0,
+      borderColor: '#000000',
+      borderWidth: 0,
+      rotate: 0,
+      zIndex: 1,
+      locked: false,
+      hidden: false,
+    };
+    pushSnapshot([defaultEl]);
     setSelectedId(null);
     setCurrentDocId(null);
   }
@@ -104,6 +162,27 @@ export default function App() {
       borderColor: '#000000',
       borderWidth: 0,
       rotate: 0,
+      zIndex: elements.length + 1,
+      locked: false,
+      hidden: false,
+    };
+    pushSnapshot([...elements, el]);
+    setSelectedId(el.id);
+  }
+
+  function handleAddAsset(asset) {
+    const size = Math.min(canvasSize.width, canvasSize.height) * 0.35;
+    const el = {
+      id: genId(),
+      type: 'image',
+      name: asset.name,
+      src: asset.src,
+      x: Math.round(canvasSize.width / 2 - size / 2),
+      y: Math.round(canvasSize.height / 2 - size / 2),
+      width: Math.round(size),
+      height: Math.round(size),
+      rotate: 0,
+      opacity: 100,
       zIndex: elements.length + 1,
       locked: false,
       hidden: false,
@@ -227,6 +306,19 @@ export default function App() {
   }
 
   // 직접 입력 캔버스 크기 적용
+  // 캔버스 크기 변경 시 요소 위치/크기를 비율에 맞게 조정
+  function scaleElementsToNewSize(newWidth, newHeight) {
+    const ratioX = newWidth / canvasSize.width;
+    const ratioY = newHeight / canvasSize.height;
+    return elements.map((el) => ({
+      ...el,
+      x: Math.round(el.x * ratioX),
+      y: Math.round(el.y * ratioY),
+      width: el.width ? Math.round(el.width * ratioX) : el.width,
+      height: el.height ? Math.round(el.height * ratioY) : el.height,
+    }));
+  }
+
   function handleApplyCustomSize() {
     const w = parseInt(customWidth, 10);
     const h = parseInt(customHeight, 10);
@@ -234,6 +326,7 @@ export default function App() {
       toast.warning('너비/높이를 100~2000px 사이로 입력해주세요.');
       return;
     }
+    pushSnapshot(scaleElementsToNewSize(w, h));
     setCanvasSize({ label: '직접 입력', width: w, height: h });
     toast.success(`캔버스 크기를 ${w}×${h}px로 변경했습니다.`);
   }
@@ -251,7 +344,12 @@ export default function App() {
   }
 
   async function handleSaveTemplate() {
-    const name = prompt('템플릿 이름을 입력하세요:', '내 POP 템플릿');
+    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    if (!projectId || projectId.startsWith('your_')) {
+      toast.error('저장 기능을 사용하려면 Firebase 설정이 필요합니다. 계속 편집은 가능합니다.', 5000);
+      return;
+    }
+    const name = prompt('작업물 이름을 입력하세요:', currentDocName);
     if (!name) return;
     setSaving(true);
     try {
@@ -260,10 +358,12 @@ export default function App() {
 
       if (currentDocId) {
         await updateTemplate(currentDocId, { name, canvasData, thumbnail });
+        setCurrentDocName(name);
         toast.success('저장되었습니다.');
       } else {
         const id = await saveTemplate({ name, canvasData, thumbnail, isBanplus, bizNumber });
         setCurrentDocId(id);
+        setCurrentDocName(name);
         toast.success('저장되었습니다.');
       }
     } catch (e) {
@@ -289,42 +389,110 @@ export default function App() {
     pushSnapshot(els || []);
     setSelectedId(null);
     setCurrentDocId(tpl.id);
+    setCurrentDocName(tpl.name || '내 POP 템플릿');
     setShowSavedModal(false);
   }
 
-  async function handleSavePng() {
+  // html2canvas로 캔버스 DOM을 이미지로 변환 (공통 유틸)
+  async function captureCanvas(scale = 2) {
     const canvas = canvasRef.current?.getCanvas();
-    if (!canvas) return;
+    if (!canvas) throw new Error('캔버스를 찾을 수 없습니다.');
+    const { default: html2canvas } = await import('html2canvas');
+    return html2canvas(canvas, {
+      scale,
+      useCORS: true,
+      logging: false,
+      backgroundColor: null,
+    });
+  }
+
+  async function handleSavePng() {
+    setSaving(true);
     try {
-      const { default: html2canvas } = await import('html2canvas');
-      const c = await html2canvas(canvas, { scale: 2, useCORS: true });
+      const c = await captureCanvas(2);
       const link = document.createElement('a');
-      link.download = 'pop.png';
+      link.download = `pop_${new Date().toISOString().slice(0, 10)}.png`;
       link.href = c.toDataURL('image/png');
       link.click();
+      toast.success('PNG로 저장했습니다.');
     } catch (e) {
       toast.error('PNG 저장에 실패했습니다: ' + e.message);
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleSavePdf() {
-    const canvas = canvasRef.current?.getCanvas();
-    if (!canvas) return;
+    setSaving(true);
     try {
-      const { default: html2canvas } = await import('html2canvas');
-      const { jsPDF } = await import('jspdf');
-      const c = await html2canvas(canvas, { scale: 2, useCORS: true });
+      const c = await captureCanvas(2);
       const imgData = c.toDataURL('image/png');
+      const { jsPDF } = await import('jspdf');
+      // 96dpi 기준 px → mm 변환 (1px = 25.4/96 mm)
+      const pxToMm = (px) => px * 25.4 / 96;
+      const wMm = pxToMm(canvasSize.width);
+      const hMm = pxToMm(canvasSize.height);
       const pdf = new jsPDF({
         orientation: canvasSize.width > canvasSize.height ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [canvasSize.width, canvasSize.height],
+        unit: 'mm',
+        format: [wMm, hMm],
       });
-      pdf.addImage(imgData, 'PNG', 0, 0, canvasSize.width, canvasSize.height);
-      pdf.save('pop.pdf');
+      pdf.addImage(imgData, 'PNG', 0, 0, wMm, hMm);
+      pdf.save(`pop_${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success('PDF로 저장했습니다.');
     } catch (e) {
       toast.error('PDF 저장에 실패했습니다: ' + e.message);
+    } finally {
+      setSaving(false);
     }
+  }
+
+  function handleExportJson() {
+    const canvasData = { template, canvasSize, elements };
+    const json = JSON.stringify(canvasData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = `pop_${new Date().toISOString().slice(0, 10)}.json`;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('JSON으로 내보냈습니다.');
+  }
+
+  function handleImportJson(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    // 파일 크기 경고 (10MB 초과)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.warning('파일이 너무 큽니다. 10MB 이하 파일을 선택해주세요.');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data.canvasSize || !Array.isArray(data.elements)) {
+          throw new Error('올바른 POP JSON 파일이 아닙니다.');
+        }
+        // elements id 재채번 (기존 작업물과 충돌 방지)
+        const remappedEls = data.elements.map((el) => ({ ...el, id: genId() }));
+        setTemplate(data.template || null);
+        setCanvasSize(data.canvasSize);
+        setCustomWidth(String(data.canvasSize.width));
+        setCustomHeight(String(data.canvasSize.height));
+        pushSnapshot(remappedEls);
+        setSelectedId(null);
+        setCurrentDocId(null);
+        toast.success('JSON 파일을 불러왔습니다.');
+      } catch (err) {
+        toast.error('가져오기 실패: ' + err.message);
+      }
+    };
+    reader.onerror = () => toast.error('파일을 읽을 수 없습니다.');
+    reader.readAsText(file);
+    e.target.value = ''; // 동일 파일 재선택 가능하도록 초기화
   }
 
   function handlePrint() {
@@ -351,6 +519,8 @@ export default function App() {
         onPrint={handlePrint}
         onSaveTemplate={handleSaveTemplate}
         onLoadTemplates={() => setShowSavedModal(true)}
+        onExportJson={handleExportJson}
+        onImportJson={handleImportJson}
         onUndo={undo}
         onRedo={redo}
         canUndo={canUndo}
@@ -368,6 +538,12 @@ export default function App() {
               onClick={() => setLeftTab('template')}
             >
               📋 템플릿
+            </button>
+            <button
+              className={`sidebar-tab-btn ${leftTab === 'asset' ? 'active' : ''}`}
+              onClick={() => setLeftTab('asset')}
+            >
+              🖼 에셋
             </button>
             <button
               className={`sidebar-tab-btn ${leftTab === 'layer' ? 'active' : ''}`}
@@ -391,7 +567,7 @@ export default function App() {
                     <button
                       key={s.label}
                       className={`size-btn ${canvasSize.label === s.label ? 'active' : ''}`}
-                      onClick={() => setCanvasSize(s)}
+                      onClick={() => { pushSnapshot(scaleElementsToNewSize(s.width, s.height)); setCanvasSize(s); setCustomWidth(String(s.width)); setCustomHeight(String(s.height)); }}
                     >
                       {s.label}
                     </button>
@@ -440,6 +616,13 @@ export default function App() {
             </>
           )}
 
+          {leftTab === 'asset' && (
+            <section className="panel" style={{ flex: 1 }}>
+              <h2 className="panel-title">🖼 에셋</h2>
+              <AssetPanel onAddAsset={handleAddAsset} />
+            </section>
+          )}
+
           {leftTab === 'layer' && (
             <section className="panel" style={{ flex: 1 }}>
               <h2 className="panel-title">🗂 레이어</h2>
@@ -468,6 +651,7 @@ export default function App() {
             setSelectedId={setSelectedId}
             startDrag={startDrag}
             commitDrag={commitDrag}
+            pushSnapshot={pushSnapshot}
           />
         </main>
 

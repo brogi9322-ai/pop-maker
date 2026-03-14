@@ -69,7 +69,20 @@ export default function PropsPanel({ selected, onChange, onDelete, onDuplicate, 
 
           <PropGroup label="정렬">
             <div className="btn-group">
-              {[['◀', 'left'], ['■', 'center'], ['▶', 'right']].map(([icon, align]) => (
+              {[
+                [
+                  <svg key="left" width="16" height="14" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2" rx="1"/><rect x="0" y="4" width="11" height="2" rx="1"/><rect x="0" y="8" width="16" height="2" rx="1"/><rect x="0" y="12" width="9" height="2" rx="1"/></svg>,
+                  'left',
+                ],
+                [
+                  <svg key="center" width="16" height="14" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2" rx="1"/><rect x="2.5" y="4" width="11" height="2" rx="1"/><rect x="0" y="8" width="16" height="2" rx="1"/><rect x="3.5" y="12" width="9" height="2" rx="1"/></svg>,
+                  'center',
+                ],
+                [
+                  <svg key="right" width="16" height="14" viewBox="0 0 16 14" fill="currentColor"><rect x="0" y="0" width="16" height="2" rx="1"/><rect x="5" y="4" width="11" height="2" rx="1"/><rect x="0" y="8" width="16" height="2" rx="1"/><rect x="7" y="12" width="9" height="2" rx="1"/></svg>,
+                  'right',
+                ],
+              ].map(([icon, align]) => (
                 <button
                   key={align}
                   className={`toggle-btn ${selected.textAlign === align ? 'active' : ''}`}
