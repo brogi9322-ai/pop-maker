@@ -9,6 +9,21 @@ import { genId } from '../utils/id';
 // eslint-disable-next-line react-refresh/only-export-components
 export const EditorContext = createContext(null);
 
+// Firebase 에러 코드 → 사용자 친화적 메시지 변환
+function getErrorMessage(e, action) {
+  const code = e?.code || '';
+  if (code === 'unavailable' || (e.message || '').toLowerCase().includes('network')) {
+    return '네트워크 연결을 확인해 주세요.';
+  }
+  if (code === 'permission-denied' || code === 'unauthenticated') {
+    return '로그인이 만료되었습니다. 다시 로그인해 주세요.';
+  }
+  if (code === 'resource-exhausted') {
+    return '잠시 후 다시 시도해 주세요.';
+  }
+  return `${action}에 실패했습니다. 잠시 후 다시 시도해 주세요.`;
+}
+
 export function EditorProvider({ children }) {
   const { isBanplus, bizNumber, login, logout } = useAuth();
 
@@ -19,7 +34,13 @@ export function EditorProvider({ children }) {
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [currentDocId, setCurrentDocId] = useState(null);
   const [currentDocName, setCurrentDocName] = useState('내 POP 템플릿');
-  const [saving, setSaving] = useState(false);
+  const [savingOp, setSavingOp] = useState(null); // null | 'template' | 'png' | 'pdf'
+  const saving = savingOp !== null;
+
+  // 온보딩 힌트 — 첫 방문 or 아직 요소를 추가한 적 없는 경우 표시
+  const [onboardingDone, setOnboardingDone] = useState(() =>
+    localStorage.getItem('onboardingDone') === 'true'
+  );
   const [leftTab, setLeftTab] = useState('template');
   const [mobileTab, setMobileTab] = useState('canvas');
   const [customWidth, setCustomWidth] = useState(String(CANVAS_SIZES[0].width));
@@ -37,6 +58,14 @@ export function EditorProvider({ children }) {
   const { toasts, toast, dismissToast } = useToast();
 
   const selectedEl = elements.find((el) => el.id === selectedId) || null;
+
+  // 첫 요소 추가 시 온보딩 힌트 숨김 처리
+  useEffect(() => {
+    if (elements.length > 0 && !onboardingDone) {
+      setOnboardingDone(true);
+      localStorage.setItem('onboardingDone', 'true');
+    }
+  }, [elements.length, onboardingDone]);
 
   // 다크모드 적용
   useEffect(() => {
@@ -268,7 +297,7 @@ export function EditorProvider({ children }) {
     }
     const name = prompt('작업물 이름을 입력하세요:', currentDocName);
     if (!name) return;
-    setSaving(true);
+    setSavingOp('template');
     try {
       const thumbnail = await generateThumbnail();
       const canvasData = { template, canvasSize, elements };
@@ -283,9 +312,9 @@ export function EditorProvider({ children }) {
         toast.success('저장되었습니다.');
       }
     } catch (e) {
-      toast.error('저장 실패: ' + e.message);
+      toast.error(getErrorMessage(e, '저장'));
     } finally {
-      setSaving(false);
+      setSavingOp(null);
     }
   }
 
@@ -314,7 +343,7 @@ export function EditorProvider({ children }) {
   }
 
   async function handleSavePng() {
-    setSaving(true);
+    setSavingOp('png');
     try {
       const c = await captureCanvas(2);
       const link = document.createElement('a');
@@ -323,12 +352,12 @@ export function EditorProvider({ children }) {
       link.click();
       toast.success('PNG로 저장했습니다.');
     } catch (e) {
-      toast.error('PNG 저장에 실패했습니다: ' + e.message);
-    } finally { setSaving(false); }
+      toast.error(getErrorMessage(e, 'PNG 저장'));
+    } finally { setSavingOp(null); }
   }
 
   async function handleSavePdf() {
-    setSaving(true);
+    setSavingOp('pdf');
     try {
       const c = await captureCanvas(2);
       const imgData = c.toDataURL('image/png');
@@ -344,8 +373,8 @@ export function EditorProvider({ children }) {
       pdf.save(`pop_${new Date().toISOString().slice(0, 10)}.pdf`);
       toast.success('PDF로 저장했습니다.');
     } catch (e) {
-      toast.error('PDF 저장에 실패했습니다: ' + e.message);
-    } finally { setSaving(false); }
+      toast.error(getErrorMessage(e, 'PDF 저장'));
+    } finally { setSavingOp(null); }
   }
 
   function handleExportJson() {
@@ -405,7 +434,8 @@ export function EditorProvider({ children }) {
     template, canvasSize, setCanvasSize, selectedId, setSelectedId,
     showBanplusModal, setShowBanplusModal,
     showSavedModal, setShowSavedModal,
-    saving, leftTab, setLeftTab, mobileTab, setMobileTab,
+    saving, savingOp, leftTab, setLeftTab, mobileTab, setMobileTab,
+    showOnboarding: elements.length === 0 && !onboardingDone,
     darkMode, setDarkMode,
     customWidth, setCustomWidth, customHeight, setCustomHeight,
     canvasRef,
