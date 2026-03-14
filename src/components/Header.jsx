@@ -8,6 +8,10 @@ export default function Header({
   onPrint,
   onSaveTemplate,
   onLoadTemplates,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }) {
   const displayBiz = bizNumber
     ? bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')
@@ -31,6 +35,23 @@ export default function Header({
       </div>
 
       <div className="header-actions">
+        <button
+          className="btn btn-secondary"
+          onClick={onUndo}
+          disabled={!canUndo}
+          title="실행 취소 (Ctrl+Z)"
+        >
+          ↩ 실행 취소
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={onRedo}
+          disabled={!canRedo}
+          title="다시 실행 (Ctrl+Shift+Z)"
+        >
+          ↪ 다시 실행
+        </button>
+        <div className="header-divider" />
         <button className="btn btn-secondary" onClick={onLoadTemplates}>
           📂 내 템플릿
         </button>

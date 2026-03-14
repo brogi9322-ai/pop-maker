@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle } from 'react';
 
 const CanvasEditor = forwardRef(function CanvasEditor(
-  { template, canvasSize, elements, setElements, selectedId, setSelectedId },
+  { template, canvasSize, elements, setElements, selectedId, setSelectedId, startDrag, commitDrag },
   ref
 ) {
   const canvasRef = useRef(null);
@@ -23,9 +23,12 @@ const CanvasEditor = forwardRef(function CanvasEditor(
   // 드래그 시작
   function handleMouseDown(e, id) {
     e.stopPropagation();
-    setSelectedId(id);
-
     const el = elements.find((el) => el.id === id);
+    // 잠긴 요소는 드래그 불가
+    if (el?.locked) return;
+    setSelectedId(id);
+    // 드래그 시작 전 state를 히스토리에 임시 보관
+    startDrag?.();
     dragState.current = {
       id,
       startX: e.clientX - el.x,
@@ -49,6 +52,10 @@ const CanvasEditor = forwardRef(function CanvasEditor(
   }
 
   function handleMouseUp() {
+    if (dragState.current) {
+      // 드래그가 실제 발생한 경우만 히스토리 기록
+      commitDrag?.();
+    }
     dragState.current = null;
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
@@ -59,6 +66,8 @@ const CanvasEditor = forwardRef(function CanvasEditor(
     e.stopPropagation();
     e.preventDefault();
     const el = elements.find((el) => el.id === id);
+    // 리사이즈 시작 전 state를 히스토리에 임시 보관
+    startDrag?.();
     resizeState.current = {
       id,
       direction,
@@ -101,6 +110,10 @@ const CanvasEditor = forwardRef(function CanvasEditor(
   }
 
   function handleResizeUp() {
+    if (resizeState.current) {
+      // 리사이즈 완료 시 히스토리 기록
+      commitDrag?.();
+    }
     resizeState.current = null;
     window.removeEventListener('mousemove', handleResizeMove);
     window.removeEventListener('mouseup', handleResizeUp);
@@ -124,6 +137,9 @@ const CanvasEditor = forwardRef(function CanvasEditor(
         onClick={handleCanvasClick}
       >
         {elements.map((el) => {
+          // 숨긴 요소는 렌더링 스킵
+          if (el.hidden) return null;
+
           const isSelected = el.id === selectedId;
 
           if (el.type === 'text') {
@@ -160,7 +176,7 @@ const CanvasEditor = forwardRef(function CanvasEditor(
                 onMouseDown={(e) => handleMouseDown(e, el.id)}
               >
                 {el.text}
-                {isSelected && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
+                {isSelected && !el.locked && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
               </div>
             );
           }
@@ -191,7 +207,7 @@ const CanvasEditor = forwardRef(function CanvasEditor(
                   style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
                   draggable={false}
                 />
-                {isSelected && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
+                {isSelected && !el.locked && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
               </div>
             );
           }
