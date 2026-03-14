@@ -12,6 +12,8 @@ export default function Header({
   onRedo,
   canUndo,
   canRedo,
+  darkMode,
+  onToggleDarkMode,
 }) {
   const displayBiz = bizNumber
     ? bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')
@@ -67,6 +69,15 @@ export default function Header({
         </button>
         <button className="btn btn-success" onClick={onPrint}>
           🖨 인쇄
+        </button>
+        <div className="header-divider" />
+        <button
+          className="btn-icon"
+          onClick={onToggleDarkMode}
+          title={darkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          aria-label={darkMode ? '라이트 모드' : '다크 모드'}
+        >
+          {darkMode ? '☀️' : '🌙'}
         </button>
       </div>
     </header>

@@ -1,6 +1,6 @@
 # pop-maker (POP 제작기)
 
-AI 해커톤 프로젝트. 캔버스 기반 POP(Point of Purchase) 광고물 제작 웹 앱.
+밴플러스 사용 약사들이 디자인 경험 없이 POP(Point of Purchase) 광고물을 빠르게 제작·저장·출력할 수 있는 캔버스 에디터 웹 앱.
 
 ## 저장소
 
@@ -9,9 +9,13 @@ AI 해커톤 프로젝트. 캔버스 기반 POP(Point of Purchase) 광고물 제
 ## 기술 스택
 
 - **프레임워크**: React 19 + Vite 8
-- **캔버스**: Fabric.js 7
-- **백엔드**: Firebase (Authentication, Firestore)
+- **캔버스**: 커스텀 HTML/CSS 렌더러 (직접 구현, Fabric.js 미사용)
+- **데이터베이스**: Firebase Firestore
+- **파일 저장소**: Firebase Storage
+- **인증**: Firebase Auth (관리자) + 사업자번호+ID (사용자, 추후 Auth 전환 예정)
+- **서버 로직**: Firebase Functions (Node.js) — Claude API 프록시 용도, Blaze 플랜 필요
 - **내보내기**: html2canvas + jsPDF
+- **배포**: Firebase Hosting (Spark 무료 플랜)
 
 ## 주요 명령어
 
@@ -27,16 +31,18 @@ npm run lint      # ESLint 실행
 ```
 src/
 ├── components/
-│   ├── CanvasEditor.jsx      # Fabric.js 캔버스 편집기 (핵심)
+│   ├── CanvasEditor.jsx      # 커스텀 캔버스 편집기 (드래그/리사이즈/선택)
 │   ├── TemplatePanel.jsx     # 템플릿 선택 패널
 │   ├── PropsPanel.jsx        # 객체 속성 편집 패널
 │   ├── Header.jsx            # 헤더 (저장/내보내기 버튼)
 │   ├── BanplusModal.jsx      # 반플러스 관련 모달
 │   ├── SavedTemplatesModal.jsx  # 저장된 템플릿 모달
-│   └── LayerPanel.jsx        # 레이어 패널 (드래그 재정렬, 잠금/숨기기)
+│   ├── LayerPanel.jsx        # 레이어 패널 (드래그 재정렬, 잠금/숨기기)
+│   └── Toast.jsx             # 토스트 알림 컴포넌트
 ├── hooks/
 │   ├── useAuth.js            # Firebase 인증 훅
-│   └── useHistory.js         # Undo/Redo 히스토리 커스텀 훅
+│   ├── useHistory.js         # Undo/Redo 히스토리 커스텀 훅
+│   └── useToast.js           # 토스트 알림 커스텀 훅
 ├── utils/
 │   └── storage.js            # Firestore 저장/불러오기 유틸
 ├── data/
@@ -50,9 +56,27 @@ src/
 
 - 기본 응답 언어: 한국어
 - 코드 주석: 한국어로 작성
-- 커밋 메시지: 한국어로 작성
 - 문서화: 한국어로 작성
 - 변수명/함수명: 영어 (코드 표준 준수)
+
+### 커밋 메시지 형식
+
+```
+<타입>: <변경 내용 요약 (한국어)>
+
+[본문 — 필요 시]
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+```
+
+| 타입 | 사용 시점 |
+|------|----------|
+| `feat` | 새 기능 추가 |
+| `fix` | 버그 수정 |
+| `docs` | 문서/주석 변경 |
+| `refactor` | 기능 변경 없는 코드 개선 |
+| `style` | 포맷, 들여쓰기 등 스타일만 변경 |
+| `chore` | 빌드 설정, 패키지, 기타 잡무 |
+| `init` | 초기 설정/세팅 |
 
 ## Git 브랜치 전략
 
@@ -110,6 +134,55 @@ hotfix/*  →  PR to main  →  배포  →  main을 develop에 역머지
   - `main` 기반으로 `hotfix/{설명}` 브랜치를 생성합니다. (worktree 사용하지 말아주세요)
   - 구현 완료 후 hotfix-close agent를 사용하여 마무리 작업(PR to main, deploy.md 기록)을 수행합니다.
 
+- **커밋 전 코드 리뷰를 반드시 수행합니다:**
+  1. 변경된 파일 전체를 읽고 아래 항목을 검토합니다.
+  2. 문제가 발견되면 커밋 전에 즉시 수정합니다.
+  3. 수정 후 재검토하여 이상 없음을 확인한 뒤 커밋합니다.
+
+  **보안 체크리스트**:
+  - 하드코딩된 API 키, 비밀번호, 토큰 없음
+  - 사용자 입력값 XSS 방지 (`dangerouslySetInnerHTML` 미사용 등)
+  - Firebase 규칙 우회 가능한 로직 없음
+  - Claude API 키가 클라이언트 코드에 노출되지 않음
+
+  **잠재적 오류 체크리스트**:
+  - `null` / `undefined` 접근으로 인한 런타임 에러 가능성
+  - 비동기 처리 누락 (`await` 빠진 Promise, 에러 핸들링 없는 `async` 함수)
+  - 메모리 누수 (이벤트 리스너 미제거, 클린업 없는 `useEffect`)
+  - 무한 루프 / 무한 리렌더링 가능성 (`useEffect` 내 직접 `setState` 주의)
+  - `useCallback` / `useEffect` 의존성 배열 누락 (exhaustive-deps 경고)
+  - 엣지 케이스 (빈 배열, 빈 문자열, 0 등) 미처리
+  - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
+
+  자세한 리뷰 기준은 `docs/dev-process.md` 섹션 7 참조.
+
+- **새 기능 요청 시 다음 순서를 따릅니다:**
+  1. ROADMAP.md에 해당 기능이 없으면 아래 기준으로 Sprint에 배정 후 추가
+  2. `docs/sprint/sprint{n}.md`에 세부 태스크 추가 (없으면 신규 생성)
+  3. Hotfix vs Sprint 판단 후 브랜치 생성 및 구현 시작
+
+  **Sprint 배정 기준**:
+  - 현재 진행 중인 Sprint 범위에 맞으면 → 해당 Sprint에 추가
+  - 범위를 벗어나거나 새 Sprint가 필요하면 → 다음 Sprint 번호로 신규 배정
+  - 긴급 버그/장애면 → Hotfix로 처리 (ROADMAP 업데이트 불필요)
+
+- **sprint 시작 시 ROADMAP.md 상태를 🔄 진행 중으로 업데이트합니다:**
+  - `docs/sprint/sprint{n}.md` 신규 생성 (목표, 태스크 목록, 완료 기준 포함)
+  - sprint 완료 시 ✅ 완료로 변경 및 진행률 업데이트
+
+- **새 컴포넌트/파일 추가 시 CLAUDE.md 디렉토리 구조를 업데이트합니다:**
+  - `src/` 하위에 새 파일이 생기면 해당 섹션에 파일명과 역할 추가
+
+- **새 npm 패키지 추가 시 docs/setup-guide.md를 업데이트합니다:**
+  - 패키지명, 용도, 설치 명령어를 사전 요구사항 또는 관련 섹션에 기재
+
+- **환경변수 추가 시 .env.example을 반드시 동기화합니다:**
+  - 실제 값은 제외하고 키 이름과 설명(주석)만 추가
+  - `.env`는 gitignore 대상이므로 `.env.example`이 유일한 공유 기준
+
+- **develop, main 브랜치에 직접 push 금지:**
+  - 모든 변경은 `sprint{n}` 또는 `hotfix/*` 브랜치를 통해 PR로 반영
+
 - 체크리스트 작성 형식:
   - 완료 항목: `- ✅ 항목 내용`
   - 미완료 항목: `- ⬜ 항목 내용`
@@ -119,4 +192,4 @@ hotfix/*  →  PR to main  →  배포  →  main을 develop에 역머지
 - 컴포넌트 파일명: PascalCase (`.jsx`)
 - 훅/유틸/데이터 파일명: camelCase (`.js`)
 - Firebase 설정은 `src/firebase.js`에서 관리 (`VITE_` 환경변수 사용)
-- Fabric.js 캔버스 인스턴스는 `CanvasEditor` 컴포넌트 내부에서 ref로 관리
+- 캔버스 요소는 `CanvasEditor` 컴포넌트 내부에서 직접 DOM 이벤트로 관리

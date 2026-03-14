@@ -4,10 +4,12 @@ import TemplatePanel from './components/TemplatePanel';
 import CanvasEditor from './components/CanvasEditor';
 import PropsPanel from './components/PropsPanel';
 import LayerPanel from './components/LayerPanel';
+import Toast from './components/Toast';
 import BanplusModal from './components/BanplusModal';
 import SavedTemplatesModal from './components/SavedTemplatesModal';
 import { useAuth } from './hooks/useAuth';
 import { useHistory } from './hooks/useHistory';
+import { useToast } from './hooks/useToast';
 import { CANVAS_SIZES } from './data/templates';
 import { saveTemplate, updateTemplate } from './utils/storage';
 import './App.css';
@@ -26,6 +28,18 @@ export default function App() {
   const [currentDocId, setCurrentDocId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [leftTab, setLeftTab] = useState('template'); // 'template' | 'layer'
+  const [darkMode, setDarkMode] = useState(() => {
+    // 시스템 설정 또는 localStorage 저장값 반영
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // 다크모드 적용
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   // 직접 입력 캔버스 크기
   const [customWidth, setCustomWidth] = useState('');
@@ -35,6 +49,9 @@ export default function App() {
 
   // Undo/Redo 히스토리
   const { elements, setElements, pushSnapshot, startDrag, commitDrag, undo, redo, canUndo, canRedo } = useHistory([]);
+
+  // 토스트 알림
+  const { toasts, toast, dismissToast } = useToast();
 
   const selectedEl = elements.find((el) => el.id === selectedId) || null;
 
@@ -125,10 +142,10 @@ export default function App() {
         pushSnapshot([...elements, el]);
         setSelectedId(el.id);
       };
-      img.onerror = () => alert('이미지를 불러올 수 없습니다. 다른 파일을 선택해주세요.');
+      img.onerror = () => toast.error('이미지를 불러올 수 없습니다. 다른 파일을 선택해주세요.');
       img.src = ev.target.result;
     };
-    reader.onerror = () => alert('파일을 읽는 중 오류가 발생했습니다.');
+    reader.onerror = () => toast.error('파일을 읽는 중 오류가 발생했습니다.');
     reader.readAsDataURL(file);
     e.target.value = '';
   }
@@ -214,10 +231,11 @@ export default function App() {
     const w = parseInt(customWidth, 10);
     const h = parseInt(customHeight, 10);
     if (!w || !h || w < 100 || h < 100 || w > 2000 || h > 2000) {
-      alert('너비/높이를 100~2000px 사이로 입력해주세요.');
+      toast.warning('너비/높이를 100~2000px 사이로 입력해주세요.');
       return;
     }
     setCanvasSize({ label: '직접 입력', width: w, height: h });
+    toast.success(`캔버스 크기를 ${w}×${h}px로 변경했습니다.`);
   }
 
   async function generateThumbnail() {
@@ -242,14 +260,14 @@ export default function App() {
 
       if (currentDocId) {
         await updateTemplate(currentDocId, { name, canvasData, thumbnail });
-        alert('저장되었습니다.');
+        toast.success('저장되었습니다.');
       } else {
         const id = await saveTemplate({ name, canvasData, thumbnail, isBanplus, bizNumber });
         setCurrentDocId(id);
-        alert('저장되었습니다.');
+        toast.success('저장되었습니다.');
       }
     } catch (e) {
-      alert('저장 실패: ' + e.message);
+      toast.error('저장 실패: ' + e.message);
     } finally {
       setSaving(false);
     }
@@ -285,7 +303,7 @@ export default function App() {
       link.href = c.toDataURL('image/png');
       link.click();
     } catch (e) {
-      alert('PNG 저장에 실패했습니다: ' + e.message);
+      toast.error('PNG 저장에 실패했습니다: ' + e.message);
     }
   }
 
@@ -305,7 +323,7 @@ export default function App() {
       pdf.addImage(imgData, 'PNG', 0, 0, canvasSize.width, canvasSize.height);
       pdf.save('pop.pdf');
     } catch (e) {
-      alert('PDF 저장에 실패했습니다: ' + e.message);
+      toast.error('PDF 저장에 실패했습니다: ' + e.message);
     }
   }
 
@@ -317,7 +335,7 @@ export default function App() {
     const ok = login(biz);
     if (ok) {
       setShowBanplusModal(false);
-      alert('밴플러스 인증이 완료되었습니다!');
+      toast.success('밴플러스 인증이 완료되었습니다!');
     }
   }
 
@@ -337,6 +355,8 @@ export default function App() {
         onRedo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode((v) => !v)}
       />
 
       <div className="app-layout">
@@ -477,6 +497,8 @@ export default function App() {
           onClose={() => setShowSavedModal(false)}
         />
       )}
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
