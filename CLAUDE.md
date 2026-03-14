@@ -43,11 +43,15 @@ src/
 │   ├── LayerPanel.jsx        # 레이어 패널 (드래그 재정렬, 잠금/숨기기)
 │   ├── AssetPanel.jsx        # 에셋 패널 (약국 SVG 아이콘 라이브러리)
 │   └── Toast.jsx             # 토스트 알림 컴포넌트
+├── context/
+│   └── EditorContext.jsx     # EditorProvider — 전체 에디터 상태 및 핸들러 관리
 ├── hooks/
 │   ├── useAuth.js            # Firebase 인증 훅
+│   ├── useEditor.js          # useEditor 커스텀 훅 (EditorContext 소비)
 │   ├── useHistory.js         # Undo/Redo 히스토리 커스텀 훅
 │   └── useToast.js           # 토스트 알림 커스텀 훅
 ├── utils/
+│   ├── id.js                 # genId — 요소 고유 ID 생성 유틸
 │   └── storage.js            # Firestore 저장/불러오기 유틸
 ├── data/
 │   ├── templates.js          # 기본 템플릿 데이터
