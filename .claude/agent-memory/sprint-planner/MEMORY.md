@@ -30,10 +30,10 @@
 | Sprint 2 | Undo/Redo, 레이어 패널, 탭 전환, 캔버스 직접 입력 | ✅ 완료 | 2026-03-15 |
 | Sprint 3 | Firebase Hosting 배포 + 내보내기 최적화 + JSON 가져오기/내보내기 | ✅ 완료 | 2026-03-15 |
 | Sprint 4 | 반응형 모바일 지원 + 터치 드래그 + Context API 리팩토링 | ✅ 완료 | 2026-03-15 |
-| Sprint 5 | AI 이미지 생성 (Claude API + Functions) | ⬜ 예정 | — |
-| Sprint 6 | 공유 + UI 폴리싱 | ⬜ 예정 | — |
+| Sprint 5 | 공개 템플릿 공유 + UI 폴리싱 (온보딩, 에러, 로딩) | 🔄 진행 중 | — |
+| Sprint 6 | AI 이미지 생성 (Claude API + Functions) | ⬜ 예정 | — |
 
-**다음 스프린트 번호: 5**
+**다음 스프린트 번호: 6**
 
 ## 브랜치 전략
 
@@ -57,7 +57,23 @@
 - `useCallback` 의존성 배열 누락 → exhaustive-deps 경고 발생
 - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
 
-## 다음 스프린트(Sprint 5) 주요 항목
+## 현재 스프린트(Sprint 5) 주요 항목
+
+목표: UI 폴리싱 + 공개 템플릿 공유
+상태: 🔄 진행 중
+
+- 공개 템플릿 공유 (`isPublic` 플래그 + `/share/:templateId` 공유 링크)
+- Firestore 보안 규칙 업데이트 (공개 템플릿 비인증 읽기 허용)
+- 모바일 미리보기 (저장된 작업물 조회 전용)
+- 온보딩 힌트 (빈 캔버스 진입 시 안내, localStorage로 확인 여부 저장)
+- 로딩 상태 개선 (저장/내보내기 중 스피너 + 토스트)
+- 에러 메시지 구체화 (상황별 안내: 네트워크 오류, 인증 만료, 쿼터 초과 등)
+
+신규 파일: `src/components/SharePage.jsx`
+신규 라우트: `/share/:id`
+신규 npm 패키지: `react-router-dom` (미설치 시 추가 필요)
+
+## 다음 스프린트(Sprint 6) 주요 항목
 
 - AI 이미지 생성 (Claude API + Firebase Functions 프록시)
 - Firebase Blaze 플랜 전환 필요

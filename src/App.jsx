@@ -1,3 +1,4 @@
+import { Routes, Route } from 'react-router-dom';
 import { EditorProvider } from './context/EditorContext';
 import { useEditor } from './hooks/useEditor';
 import Header from './components/Header';
@@ -9,14 +10,16 @@ import AssetPanel from './components/AssetPanel';
 import Toast from './components/Toast';
 import BanplusModal from './components/BanplusModal';
 import SavedTemplatesModal from './components/SavedTemplatesModal';
+import SharePage from './components/SharePage';
 import { CANVAS_SIZES } from './data/templates';
 import './App.css';
 
 export default function App() {
   return (
-    <EditorProvider>
-      <AppLayout />
-    </EditorProvider>
+    <Routes>
+      <Route path="/share/:id" element={<SharePage />} />
+      <Route path="*" element={<EditorProvider><AppLayout /></EditorProvider>} />
+    </Routes>
   );
 }
 
@@ -26,7 +29,8 @@ function AppLayout() {
     template, canvasSize, setCanvasSize, selectedId, setSelectedId,
     showBanplusModal, setShowBanplusModal,
     showSavedModal, setShowSavedModal,
-    saving, leftTab, setLeftTab, mobileTab, setMobileTab,
+    saving, savingOp, showOnboarding,
+    leftTab, setLeftTab, mobileTab, setMobileTab,
     darkMode, setDarkMode,
     customWidth, setCustomWidth, customHeight, setCustomHeight,
     canvasRef,
@@ -70,6 +74,8 @@ function AppLayout() {
         canRedo={canRedo}
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode((v) => !v)}
+        saving={saving}
+        savingOp={savingOp}
       />
 
       <div className="app-layout">
@@ -146,7 +152,22 @@ function AppLayout() {
 
         {/* 캔버스 */}
         <main className={`canvas-area ${mobileTab === 'canvas' ? 'mobile-active' : ''}`}>
-          {saving && <div className="saving-overlay">저장 중...</div>}
+          {saving && (
+            <div className="saving-overlay">
+              {savingOp === 'png' ? 'PNG 변환 중...' : savingOp === 'pdf' ? 'PDF 변환 중...' : '저장 중...'}
+            </div>
+          )}
+          {showOnboarding && (
+            <div className="onboarding-hint">
+              <div className="onboarding-hint-box">
+                <p className="onboarding-hint-title">시작하는 방법</p>
+                <p className="onboarding-hint-desc">
+                  왼쪽 패널에서 <strong>템플릿</strong>을 선택하거나,<br />
+                  <strong>텍스트 추가 / 이미지 업로드</strong>로 직접 시작하세요.
+                </p>
+              </div>
+            </div>
+          )}
           <CanvasEditor
             ref={canvasRef}
             template={template}
