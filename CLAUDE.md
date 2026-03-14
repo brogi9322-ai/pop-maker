@@ -32,9 +32,11 @@ src/
 │   ├── PropsPanel.jsx        # 객체 속성 편집 패널
 │   ├── Header.jsx            # 헤더 (저장/내보내기 버튼)
 │   ├── BanplusModal.jsx      # 반플러스 관련 모달
-│   └── SavedTemplatesModal.jsx  # 저장된 템플릿 모달
+│   ├── SavedTemplatesModal.jsx  # 저장된 템플릿 모달
+│   └── LayerPanel.jsx        # 레이어 패널 (드래그 재정렬, 잠금/숨기기)
 ├── hooks/
-│   └── useAuth.js            # Firebase 인증 훅
+│   ├── useAuth.js            # Firebase 인증 훅
+│   └── useHistory.js         # Undo/Redo 히스토리 커스텀 훅
 ├── utils/
 │   └── storage.js            # Firestore 저장/불러오기 유틸
 ├── data/

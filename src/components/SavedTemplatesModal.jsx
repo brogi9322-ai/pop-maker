@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   getMyTemplates,
   getAllTemplates,
@@ -18,11 +18,7 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
     ? `biz_${bizNumber.replace(/-/g, '')}`
     : getUserId();
 
-  useEffect(() => {
-    fetchTemplates();
-  }, [tab]);
-
-  async function fetchTemplates() {
+  const fetchTemplates = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -39,7 +35,11 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
     } finally {
       setLoading(false);
     }
-  }
+  }, [tab, isBanplus, bizNumber]);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
 
   async function handleDelete(id, e) {
     e.stopPropagation();

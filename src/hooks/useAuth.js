@@ -1,17 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { validateBizNumber } from '../utils/storage';
 
 export function useAuth() {
-  const [isBanplus, setIsBanplus] = useState(false);
-  const [bizNumber, setBizNumber] = useState('');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('pop_banplus');
-    if (saved) {
-      setBizNumber(saved);
-      setIsBanplus(true);
-    }
-  }, []);
+  // localStorage에서 초기 인증 상태 로드 (lazy initializer로 effect 없이 처리)
+  const [bizNumber, setBizNumber] = useState(() => localStorage.getItem('pop_banplus') || '');
+  const [isBanplus, setIsBanplus] = useState(() => !!localStorage.getItem('pop_banplus'));
 
   function login(biz) {
     if (!validateBizNumber(biz)) return false;
