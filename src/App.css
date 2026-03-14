@@ -568,6 +568,11 @@ body {
   font-weight: 600;
 }
 
+.saved-template-general {
+  font-size: 11px;
+  color: #888;
+}
+
 .saved-template-date {
   font-size: 11px;
   color: #aaa;

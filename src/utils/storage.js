@@ -92,11 +92,10 @@ export async function getBanplusMyTemplates(bizNumber) {
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-// 밴플러스 공유 템플릿 전체 불러오기
-export async function getBanplusSharedTemplates() {
+// 전체 템플릿 불러오기 (밴플러스 사용자 전용)
+export async function getAllTemplates() {
   const q = query(
     collection(db, 'templates'),
-    where('isBanplus', '==', true),
     orderBy('updatedAt', 'desc')
   );
   const snapshot = await getDocs(q);

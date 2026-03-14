@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import {
   getMyTemplates,
-  getBanplusSharedTemplates,
+  getAllTemplates,
   getBanplusMyTemplates,
   deleteTemplate,
+  getUserId,
 } from '../utils/storage';
 
 export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onClose }) {
-  const [tab, setTab] = useState('my'); // 'my' | 'shared'
+  const [tab, setTab] = useState('my'); // 'my' | 'all'
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // 현재 사용자 ID (삭제 버튼 표시 기준)
+  const myUserId = isBanplus
+    ? `biz_${bizNumber.replace(/-/g, '')}`
+    : getUserId();
 
   useEffect(() => {
     fetchTemplates();
@@ -24,7 +30,8 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
       if (tab === 'my') {
         data = isBanplus ? await getBanplusMyTemplates(bizNumber) : await getMyTemplates();
       } else {
-        data = await getBanplusSharedTemplates();
+        // 밴플러스 사용자만 접근 가능한 전체 탭
+        data = await getAllTemplates();
       }
       setTemplates(data);
     } catch (e) {
@@ -60,10 +67,10 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
           </button>
           {isBanplus && (
             <button
-              className={`tab-btn ${tab === 'shared' ? 'active' : ''}`}
-              onClick={() => setTab('shared')}
+              className={`tab-btn ${tab === 'all' ? 'active' : ''}`}
+              onClick={() => setTab('all')}
             >
-              🏪 밴플러스 공유 템플릿
+              🏪 전체 템플릿
             </button>
           )}
         </div>
@@ -75,32 +82,39 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
             <p className="empty-msg">저장된 템플릿이 없습니다.</p>
           )}
           {!loading &&
-            templates.map((tpl) => (
-              <div key={tpl.id} className="saved-template-item" onClick={() => onLoad(tpl)}>
-                {tpl.thumbnail && (
-                  <img src={tpl.thumbnail} alt={tpl.name} className="saved-template-thumb" />
-                )}
-                <div className="saved-template-info">
-                  <span className="saved-template-name">{tpl.name}</span>
-                  {tpl.bizNumber && (
-                    <span className="saved-template-biz">
-                      사업자: {tpl.bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')}
-                    </span>
+            templates.map((tpl) => {
+              const isOwner = tpl.userId === myUserId;
+              return (
+                <div key={tpl.id} className="saved-template-item" onClick={() => onLoad(tpl)}>
+                  {tpl.thumbnail && (
+                    <img src={tpl.thumbnail} alt={tpl.name} className="saved-template-thumb" />
                   )}
-                  <span className="saved-template-date">
-                    {tpl.updatedAt?.toDate
-                      ? tpl.updatedAt.toDate().toLocaleDateString('ko-KR')
-                      : '날짜 없음'}
-                  </span>
+                  <div className="saved-template-info">
+                    <span className="saved-template-name">{tpl.name}</span>
+                    {tpl.isBanplus && tpl.bizNumber ? (
+                      <span className="saved-template-biz">
+                        🏪 {tpl.bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')}
+                      </span>
+                    ) : (
+                      <span className="saved-template-general">일반 사용자</span>
+                    )}
+                    <span className="saved-template-date">
+                      {tpl.updatedAt?.toDate
+                        ? tpl.updatedAt.toDate().toLocaleDateString('ko-KR')
+                        : '날짜 없음'}
+                    </span>
+                  </div>
+                  {isOwner && (
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={(e) => handleDelete(tpl.id, e)}
+                    >
+                      삭제
+                    </button>
+                  )}
                 </div>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={(e) => handleDelete(tpl.id, e)}
-                >
-                  삭제
-                </button>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </div>
     </div>
