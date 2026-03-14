@@ -138,27 +138,83 @@ hotfix/*  →  PR to main  →  배포  →  main을 develop에 역머지
   - 구현 완료 후 hotfix-close agent를 사용하여 마무리 작업(PR to main, deploy.md 기록)을 수행합니다.
 
 - **커밋 전 코드 리뷰 및 검증을 반드시 수행합니다:**
-  1. 변경된 파일 전체를 읽고 아래 항목을 검토합니다.
+  1. 변경된 파일 전체를 읽고 아래 체크리스트를 항목별로 검토합니다.
   2. `npm run lint` → `npm test` → `npm run build` 순서로 실행하여 모두 통과하는지 확인합니다.
-  3. 문제가 발견되면 커밋 전에 즉시 수정합니다.
+  3. 문제 발견 즉시 수정하고, 수정 후 재검증합니다.
   4. 새 기능을 추가했다면 관련 테스트도 함께 작성합니다 (hooks/utils는 필수, components는 권장).
 
-  **보안 체크리스트**:
-  - 하드코딩된 API 키, 비밀번호, 토큰 없음
-  - 사용자 입력값 XSS 방지 (`dangerouslySetInnerHTML` 미사용 등)
-  - Firebase 규칙 우회 가능한 로직 없음
+  **🔴 Critical — 발견 즉시 수정 (커밋 차단)**
+
+  보안:
+  - 하드코딩된 API 키, 비밀번호, 토큰, Firebase 설정값 없음
+  - `dangerouslySetInnerHTML` 미사용 (XSS 위험)
   - Claude API 키가 클라이언트 코드에 노출되지 않음
+  - Firebase Security Rules 우회 가능한 로직 없음
 
-  **잠재적 오류 체크리스트**:
-  - `null` / `undefined` 접근으로 인한 런타임 에러 가능성
-  - 비동기 처리 누락 (`await` 빠진 Promise, 에러 핸들링 없는 `async` 함수)
-  - 메모리 누수 (이벤트 리스너 미제거, 클린업 없는 `useEffect`)
-  - 무한 루프 / 무한 리렌더링 가능성 (`useEffect` 내 직접 `setState` 주의)
-  - `useCallback` / `useEffect` 의존성 배열 누락 (exhaustive-deps 경고)
-  - 엣지 케이스 (빈 배열, 빈 문자열, 0 등) 미처리
-  - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
+  런타임 에러:
+  - `null` / `undefined` 접근 전 방어 코드 존재 (`?.`, `??`, 조건문)
+  - 배열 메서드(`.map`, `.filter`) 호출 전 배열 여부 확인
+  - `try/catch` 없는 Firestore/Storage 호출 없음
+  - `async` 함수 내 모든 `await` 누락 없음
+  - Firestore 문서에 base64 이미지 직접 저장 없음 (1MB 제한 → Storage URL 사용)
 
-  자세한 리뷰 기준은 `docs/dev-process.md` 섹션 7 참조.
+  메모리 누수:
+  - `addEventListener` → 대응하는 `removeEventListener` 존재
+  - `setInterval`/`setTimeout` → `useEffect` 클린업에서 clear
+  - 클린업 없는 `useEffect` 없음
+
+  **🟠 High — 수정 강력 권장**
+
+  React 패턴:
+  - `useEffect` 내 직접 `setState` 호출 없음 (무한 리렌더링 위험)
+  - `useCallback`/`useMemo`/`useEffect` 의존성 배열 완전히 명시
+  - `key` prop이 배열 index가 아닌 고유 id 사용
+
+  에러 처리:
+  - 모든 비동기 작업에 사용자 에러 피드백 존재 (`toast.error()` 사용, `alert()` 금지)
+  - 네트워크 실패 시 빈 화면이 아닌 에러 상태 표시
+  - 에러 메시지가 구체적임 (❌ "오류 발생" → ✅ "이미지 크기가 5MB를 초과했습니다")
+  - 성공 피드백 존재 (`toast.success()`)
+
+  **🟡 Medium — 코드 품질 (다음 Sprint 개선 가능)**
+
+  코드 가독성:
+  - 함수/변수명이 역할을 명확히 설명함 (`data` → `canvasElements`, `fn` → `handleSave`)
+  - 한 함수가 한 가지 역할만 수행 (20줄 초과 시 분리 검토)
+  - 복잡한 조건문에 의미 있는 변수명으로 의도 표현
+    ```js
+    // ❌ if (el && el.type === 'text' && !el.locked && !el.hidden)
+    // ✅ const isEditableText = el?.type === 'text' && !el.locked && !el.hidden;
+    ```
+  - 중첩 삼항 연산자 없음 (2단계 이상)
+  - 한국어 주석은 "왜"를 설명 (코드가 이미 말하는 "무엇"은 불필요)
+
+  코드 일관성:
+  - 같은 기능 코드가 3회 이상 중복 시 추출 검토
+  - 파일 내 코딩 스타일이 기존 패턴과 일치 (화살표 함수 / function 선언 혼용 금지)
+  - 상수는 파일 상단에 모아 선언 (매직 넘버/문자열 인라인 금지)
+  - CSS는 CSS 변수(`--color-*`, `--space-*`) 사용, 하드코딩 금지
+
+  자세한 리뷰 기준은 `.claude/agents/sprint-close.md` 참조.
+
+- **sprint 구현이 완료되면 반드시 sprint-close 에이전트를 자동으로 실행합니다:**
+  - 별도 요청이 없어도 구현 완료 후 자동으로 sprint-close를 실행합니다.
+  - sprint-close 내에 UI 리뷰가 포함되어 있습니다 (별도 요청 불필요).
+  - 순서: 코드 리뷰 → UI 리뷰 → lint/test/build → sprint 문서 기록 → ROADMAP 업데이트 → PR 생성
+
+- **모든 개발 과정은 커밋 이력과 문서로 추적 가능해야 합니다:**
+  - 커밋 메시지는 "무엇을 왜 변경했는지" 명확히 기술합니다.
+  - `docs/sprint/sprint{N}.md`에 코드 리뷰 결과, UI 리뷰 결과, 검증 결과를 기록합니다.
+  - PR 본문에 변경 파일 목록, 검증 결과, 수동 검증 항목을 포함합니다.
+  - 발견된 버그/이슈는 수정 내용과 함께 sprint 문서에 기록합니다.
+  - 다음 Sprint 개선 사항도 sprint 문서에 남겨 추후 참조할 수 있게 합니다.
+
+- **개발 시 코드 가독성, 일관성, 에러 처리를 항상 염두에 둡니다:**
+  - 함수/변수명은 역할을 명확히 설명하는 이름 사용
+  - 같은 패턴이 3회 이상 반복되면 추출을 검토
+  - 모든 비동기 작업에 `try/catch` + `toast.error()` 필수
+  - 성공 피드백도 빠짐없이 제공 (`toast.success()`)
+  - CSS는 반드시 CSS 변수(`var(--color-*)`, `var(--space-*)`) 사용
 
 - **새 기능 요청 시 다음 순서를 따릅니다:**
   1. ROADMAP.md에 해당 기능이 없으면 아래 기준으로 Sprint에 배정 후 추가
