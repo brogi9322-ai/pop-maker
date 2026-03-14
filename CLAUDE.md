@@ -41,6 +41,7 @@ src/
 │   ├── BanplusModal.jsx      # 반플러스 관련 모달
 │   ├── SavedTemplatesModal.jsx  # 저장된 템플릿 모달
 │   ├── LayerPanel.jsx        # 레이어 패널 (드래그 재정렬, 잠금/숨기기)
+│   ├── AssetPanel.jsx        # 에셋 패널 (약국 SVG 아이콘 라이브러리)
 │   └── Toast.jsx             # 토스트 알림 컴포넌트
 ├── hooks/
 │   ├── useAuth.js            # Firebase 인증 훅
@@ -49,7 +50,8 @@ src/
 ├── utils/
 │   └── storage.js            # Firestore 저장/불러오기 유틸
 ├── data/
-│   └── templates.js          # 기본 템플릿 데이터
+│   ├── templates.js          # 기본 템플릿 데이터
+│   └── assets.js             # 약국 SVG 에셋 데이터 (23개, 5카테고리)
 ├── firebase.js               # Firebase 초기화
 ├── App.jsx                   # 루트 컴포넌트
 └── main.jsx                  # 엔트리포인트
