@@ -61,22 +61,25 @@ memory: project
 - 기준 1
 - 기준 2
 
-### 🧪 Playwright MCP 검증 시나리오
-각 Phase 완료 시 개발 서버 실행 후 Playwright MCP 도구로 아래 시나리오를 직접 검증합니다.
+### 🧪 검증 시나리오
+각 Phase 완료 시 아래 순서로 검증합니다.
 
-```
-# 검증 시나리오 예시 (각 Phase별 구체적 항목으로 작성)
-1. browser_navigate → http://localhost:3000 접속
-2. browser_snapshot → 페이지 렌더링 상태 확인
-3. browser_click → [검증할 요소] 클릭
-4. browser_snapshot → 상태 변화 확인
-5. browser_console_messages → 오류 없음 확인
+```bash
+# 1. 단위/통합 테스트 전체 통과
+npm test
+
+# 2. 빌드 성공
+npm run build
+
+# 3. 로컬 개발 서버에서 수동 동작 확인
+npm run dev   # http://localhost:5173 접속
 ```
 
 **공통 검증 항목:**
-- `browser_navigate`로 각 페이지 접속 후 `browser_snapshot`으로 렌더링 확인
-- `browser_console_messages(level: "error")`로 콘솔 에러 없음 확인
-- `browser_network_requests`로 API 호출 성공(200) 확인
+- `npm test` — 훅/유틸/컴포넌트 테스트 전체 통과
+- `npm run build` — 프로덕션 빌드 에러 없음
+- 개발 서버 접속 후 주요 사용자 흐름 수동 확인 (캔버스 편집, 템플릿 로드, 내보내기)
+- 브라우저 콘솔 에러 없음 확인
 
 ### 기술 고려사항
 - 사용 기술/패턴
@@ -124,7 +127,7 @@ ROADMAP.md 작성 완료 후 다음을 확인합니다:
 - [ ] MVP 범위가 명확하게 정의되었는가?
 - [ ] 각 태스크가 실제로 실행 가능한 수준으로 구체적인가?
 - [ ] 완료 기준(Definition of Done)이 측정 가능한가?
-- [ ] 각 Phase에 Playwright MCP 검증 시나리오가 포함되었는가?
+- [ ] 각 Phase에 검증 시나리오(npm test + 수동 확인 항목)가 포함되었는가?
 
 ## 출력 형식
 
