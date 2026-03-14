@@ -28,11 +28,12 @@
 |---------|------|------|--------|
 | Sprint 1 | 기본 제공 템플릿 10종 + 개발 프로세스 수립 | ✅ 완료 | 2026-03-15 이전 |
 | Sprint 2 | Undo/Redo, 레이어 패널, 탭 전환, 캔버스 직접 입력 | ✅ 완료 | 2026-03-15 |
-| Sprint 3 | 내보내기 최적화 + Firebase Hosting 배포 | ⬜ 예정 | — |
-| Sprint 4 | AI 이미지 생성 (Claude API + Functions) | ⬜ 예정 | — |
-| Sprint 5 | 공유 + UI 폴리싱 | ⬜ 예정 | — |
+| Sprint 3 | Firebase Hosting 배포 + 내보내기 최적화 + JSON 가져오기/내보내기 | ✅ 완료 | 2026-03-15 |
+| Sprint 4 | 반응형 모바일 지원 + 터치 드래그 + Context API 리팩토링 | ✅ 완료 | 2026-03-15 |
+| Sprint 5 | AI 이미지 생성 (Claude API + Functions) | ⬜ 예정 | — |
+| Sprint 6 | 공유 + UI 폴리싱 | ⬜ 예정 | — |
 
-**다음 스프린트 번호: 3**
+**다음 스프린트 번호: 5**
 
 ## 브랜치 전략
 
@@ -56,9 +57,9 @@
 - `useCallback` 의존성 배열 누락 → exhaustive-deps 경고 발생
 - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
 
-## 다음 스프린트(Sprint 3) 주요 항목
+## 다음 스프린트(Sprint 5) 주요 항목
 
-- PNG 내보내기 최적화 (3초 이내)
-- PDF 내보내기 품질 개선
-- Firebase Hosting 배포 설정 및 GitHub Actions 자동 배포
-- JSON 템플릿 내보내기/가져오기
+- AI 이미지 생성 (Claude API + Firebase Functions 프록시)
+- Firebase Blaze 플랜 전환 필요
+- 생성된 이미지를 캔버스 요소로 삽입
+- 접근성 개선 (aria-label, role 속성 추가)
