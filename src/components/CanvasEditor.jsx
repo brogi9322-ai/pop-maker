@@ -1,0 +1,239 @@
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
+
+const CanvasEditor = forwardRef(function CanvasEditor(
+  { template, canvasSize, elements, setElements, selectedId, setSelectedId },
+  ref
+) {
+  const canvasRef = useRef(null);
+  const dragState = useRef(null);
+  const resizeState = useRef(null);
+
+  // 외부에서 캔버스 DOM 접근용
+  useImperativeHandle(ref, () => ({
+    getCanvas: () => canvasRef.current,
+  }));
+
+  // 캔버스 클릭 (선택 해제)
+  function handleCanvasClick(e) {
+    if (e.target === canvasRef.current || e.target.classList.contains('canvas-bg')) {
+      setSelectedId(null);
+    }
+  }
+
+  // 드래그 시작
+  function handleMouseDown(e, id) {
+    e.stopPropagation();
+    setSelectedId(id);
+
+    const el = elements.find((el) => el.id === id);
+    dragState.current = {
+      id,
+      startX: e.clientX - el.x,
+      startY: e.clientY - el.y,
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }
+
+  function handleMouseMove(e) {
+    if (!dragState.current) return;
+    const { id, startX, startY } = dragState.current;
+    setElements((prev) =>
+      prev.map((el) =>
+        el.id === id
+          ? { ...el, x: e.clientX - startX, y: e.clientY - startY }
+          : el
+      )
+    );
+  }
+
+  function handleMouseUp() {
+    dragState.current = null;
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('mouseup', handleMouseUp);
+  }
+
+  // 리사이즈 핸들 드래그
+  function handleResizeMouseDown(e, id, direction) {
+    e.stopPropagation();
+    e.preventDefault();
+    const el = elements.find((el) => el.id === id);
+    resizeState.current = {
+      id,
+      direction,
+      startX: e.clientX,
+      startY: e.clientY,
+      startW: el.width || 200,
+      startH: el.height || 200,
+      startElX: el.x,
+      startElY: el.y,
+    };
+    window.addEventListener('mousemove', handleResizeMove);
+    window.addEventListener('mouseup', handleResizeUp);
+  }
+
+  function handleResizeMove(e) {
+    if (!resizeState.current) return;
+    const { id, direction, startX, startY, startW, startH, startElX, startElY } = resizeState.current;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    setElements((prev) =>
+      prev.map((el) => {
+        if (el.id !== id) return el;
+        let newW = startW, newH = startH, newX = startElX, newY = startElY;
+
+        if (direction.includes('e')) newW = Math.max(50, startW + dx);
+        if (direction.includes('s')) newH = Math.max(30, startH + dy);
+        if (direction.includes('w')) {
+          newW = Math.max(50, startW - dx);
+          newX = startElX + (startW - newW);
+        }
+        if (direction.includes('n')) {
+          newH = Math.max(30, startH - dy);
+          newY = startElY + (startH - newH);
+        }
+
+        return { ...el, width: newW, height: newH, x: newX, y: newY };
+      })
+    );
+  }
+
+  function handleResizeUp() {
+    resizeState.current = null;
+    window.removeEventListener('mousemove', handleResizeMove);
+    window.removeEventListener('mouseup', handleResizeUp);
+  }
+
+  return (
+    <div className="canvas-scroll-area">
+      <div
+        ref={canvasRef}
+        id="pop-canvas"
+        className="pop-canvas"
+        style={{
+          width: canvasSize.width,
+          height: canvasSize.height,
+          background: template ? template.background : '#ffffff',
+          border: template ? template.border : '1px solid #ccc',
+          position: 'relative',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+        onClick={handleCanvasClick}
+      >
+        {elements.map((el) => {
+          const isSelected = el.id === selectedId;
+
+          if (el.type === 'text') {
+            return (
+              <div
+                key={el.id}
+                className={`canvas-element text-element ${isSelected ? 'selected' : ''}`}
+                style={{
+                  position: 'absolute',
+                  left: el.x,
+                  top: el.y,
+                  width: el.width || 'auto',
+                  minWidth: 60,
+                  fontFamily: el.fontFamily,
+                  fontSize: el.fontSize,
+                  fontWeight: el.fontWeight,
+                  color: el.color,
+                  backgroundColor: el.bgColor,
+                  textAlign: el.textAlign,
+                  lineHeight: el.lineHeight,
+                  letterSpacing: `${el.letterSpacing}px`,
+                  border: isSelected
+                    ? '2px dashed #0066ff'
+                    : `${el.borderWidth || 0}px solid ${el.borderColor || 'transparent'}`,
+                  padding: '8px 12px',
+                  cursor: 'move',
+                  userSelect: 'none',
+                  transform: `rotate(${el.rotate || 0}deg)`,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  zIndex: el.zIndex || 1,
+                  boxSizing: 'border-box',
+                }}
+                onMouseDown={(e) => handleMouseDown(e, el.id)}
+              >
+                {el.text}
+                {isSelected && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
+              </div>
+            );
+          }
+
+          if (el.type === 'image') {
+            return (
+              <div
+                key={el.id}
+                className={`canvas-element ${isSelected ? 'selected' : ''}`}
+                style={{
+                  position: 'absolute',
+                  left: el.x,
+                  top: el.y,
+                  width: el.width,
+                  height: el.height,
+                  cursor: 'move',
+                  transform: `rotate(${el.rotate || 0}deg)`,
+                  zIndex: el.zIndex || 1,
+                  border: isSelected ? '2px dashed #0066ff' : 'none',
+                  boxSizing: 'border-box',
+                  opacity: (el.opacity || 100) / 100,
+                }}
+                onMouseDown={(e) => handleMouseDown(e, el.id)}
+              >
+                <img
+                  src={el.src}
+                  alt=""
+                  style={{ width: '100%', height: '100%', display: 'block', pointerEvents: 'none' }}
+                  draggable={false}
+                />
+                {isSelected && <ResizeHandles id={el.id} onResizeMouseDown={handleResizeMouseDown} />}
+              </div>
+            );
+          }
+
+          return null;
+        })}
+      </div>
+    </div>
+  );
+});
+
+function ResizeHandles({ id, onResizeMouseDown }) {
+  const handles = [
+    { dir: 'n', style: { top: -5, left: '50%', transform: 'translateX(-50%)', cursor: 'n-resize' } },
+    { dir: 's', style: { bottom: -5, left: '50%', transform: 'translateX(-50%)', cursor: 's-resize' } },
+    { dir: 'e', style: { right: -5, top: '50%', transform: 'translateY(-50%)', cursor: 'e-resize' } },
+    { dir: 'w', style: { left: -5, top: '50%', transform: 'translateY(-50%)', cursor: 'w-resize' } },
+    { dir: 'ne', style: { top: -5, right: -5, cursor: 'ne-resize' } },
+    { dir: 'nw', style: { top: -5, left: -5, cursor: 'nw-resize' } },
+    { dir: 'se', style: { bottom: -5, right: -5, cursor: 'se-resize' } },
+    { dir: 'sw', style: { bottom: -5, left: -5, cursor: 'sw-resize' } },
+  ];
+
+  return (
+    <>
+      {handles.map(({ dir, style }) => (
+        <div
+          key={dir}
+          style={{
+            position: 'absolute',
+            width: 10,
+            height: 10,
+            background: '#0066ff',
+            border: '1px solid #fff',
+            borderRadius: 2,
+            ...style,
+          }}
+          onMouseDown={(e) => onResizeMouseDown(e, id, dir)}
+        />
+      ))}
+    </>
+  );
+}
+
+export default CanvasEditor;
