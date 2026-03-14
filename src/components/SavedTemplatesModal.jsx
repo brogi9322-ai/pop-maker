@@ -76,11 +76,15 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
     }
   }
 
+  const [copiedId, setCopiedId] = useState(null); // 링크 복사 성공 피드백용
+
   function handleCopyLink(id, e) {
     e.stopPropagation();
     const url = `${window.location.origin}/share/${id}`;
     navigator.clipboard.writeText(url).then(() => {
-      // 링크 복사 성공 — 버튼 텍스트로 피드백 (별도 toast 없이 처리)
+      // 버튼 텍스트로 복사 성공 피드백 제공
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     }).catch(() => {
       setError('링크 복사에 실패했습니다. 수동으로 복사해 주세요.');
     });
@@ -154,7 +158,7 @@ export default function SavedTemplatesModal({ isBanplus, bizNumber, onLoad, onCl
                           onClick={(e) => handleCopyLink(tpl.id, e)}
                           title="공유 링크 복사"
                         >
-                          🔗 링크 복사
+                          {copiedId === tpl.id ? '✅ 복사됨' : '🔗 링크 복사'}
                         </button>
                       )}
                       <button
