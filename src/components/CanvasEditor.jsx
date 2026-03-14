@@ -65,26 +65,22 @@ const CanvasEditor = forwardRef(function CanvasEditor(
     }
   }
 
-  // 드래그 시작
-  function handleMouseDown(e, id) {
-    e.stopPropagation();
+  // 드래그 공통 시작 로직
+  function startDragElement(clientX, clientY, id) {
     const el = elements.find((el) => el.id === id);
-    // 잠긴 요소는 드래그 불가
-    if (el?.locked) return;
+    if (el?.locked) return false;
     setSelectedId(id);
-    // 드래그 시작 전 state를 히스토리에 임시 보관
     startDrag?.();
     dragState.current = {
       id,
-      startX: e.clientX - el.x,
-      startY: e.clientY - el.y,
+      startX: clientX - el.x,
+      startY: clientY - el.y,
     };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    return true;
   }
 
-  function handleMouseMove(e) {
+  // 드래그 공통 이동 로직
+  function moveDragElement(clientX, clientY) {
     if (!dragState.current) return;
     const { id, startX, startY } = dragState.current;
     setElements((prev) =>
@@ -92,21 +88,58 @@ const CanvasEditor = forwardRef(function CanvasEditor(
         if (el.id !== id) return el;
         const elW = el.width || 60;
         const elH = el.height || (el.type === 'text' ? Math.round(el.fontSize * el.lineHeight + 16) : 30);
-        const newX = Math.max(0, Math.min(canvasSize.width - elW, e.clientX - startX));
-        const newY = Math.max(0, Math.min(canvasSize.height - elH, e.clientY - startY));
+        const newX = Math.max(0, Math.min(canvasSize.width - elW, clientX - startX));
+        const newY = Math.max(0, Math.min(canvasSize.height - elH, clientY - startY));
         return { ...el, x: newX, y: newY };
       })
     );
   }
 
-  function handleMouseUp() {
-    if (dragState.current) {
-      // 드래그가 실제 발생한 경우만 히스토리 기록
-      commitDrag?.();
-    }
+  // 드래그 공통 종료 로직
+  function endDragElement() {
+    if (dragState.current) commitDrag?.();
     dragState.current = null;
+  }
+
+  // 마우스 드래그
+  function handleMouseDown(e, id) {
+    e.stopPropagation();
+    if (!startDragElement(e.clientX, e.clientY, id)) return;
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }
+
+  function handleMouseMove(e) {
+    moveDragElement(e.clientX, e.clientY);
+  }
+
+  function handleMouseUp() {
+    endDragElement();
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
+  }
+
+  // 터치 드래그
+  function handleTouchStart(e, id) {
+    if (e.touches.length !== 1) return;
+    e.stopPropagation();
+    const touch = e.touches[0];
+    if (!startDragElement(touch.clientX, touch.clientY, id)) return;
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+  }
+
+  function handleTouchMove(e) {
+    if (e.touches.length !== 1) return;
+    e.preventDefault(); // 드래그 중 스크롤 방지
+    const touch = e.touches[0];
+    moveDragElement(touch.clientX, touch.clientY);
+  }
+
+  function handleTouchEnd() {
+    endDragElement();
+    window.removeEventListener('touchmove', handleTouchMove);
+    window.removeEventListener('touchend', handleTouchEnd);
   }
 
   // 리사이즈 핸들 드래그
@@ -227,6 +260,7 @@ const CanvasEditor = forwardRef(function CanvasEditor(
                   boxSizing: 'border-box',
                 }}
                 onMouseDown={isEditing ? (e) => e.stopPropagation() : (e) => handleMouseDown(e, el.id)}
+                onTouchStart={isEditing ? undefined : (e) => handleTouchStart(e, el.id)}
                 onDoubleClick={(e) => handleTextDoubleClick(e, el)}
                 onBlur={isEditing ? () => commitEdit(el) : undefined}
                 onKeyDown={isEditing ? handleEditKeyDown : undefined}
@@ -257,6 +291,7 @@ const CanvasEditor = forwardRef(function CanvasEditor(
                   opacity: (el.opacity || 100) / 100,
                 }}
                 onMouseDown={(e) => handleMouseDown(e, el.id)}
+                onTouchStart={(e) => handleTouchStart(e, el.id)}
               >
                 <img
                   src={el.src}
