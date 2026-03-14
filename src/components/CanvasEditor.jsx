@@ -71,10 +71,13 @@ const CanvasEditor = forwardRef(function CanvasEditor(
     if (el?.locked) return false;
     setSelectedId(id);
     startDrag?.();
+    // 캔버스의 현재 뷰포트 위치를 기준으로 오프셋 계산
+    // (단순히 clientX - el.x 방식은 캔버스가 스크롤된 경우 좌표가 어긋남)
+    const canvasRect = canvasRef.current.getBoundingClientRect();
     dragState.current = {
       id,
-      startX: clientX - el.x,
-      startY: clientY - el.y,
+      offsetX: clientX - canvasRect.left - el.x, // 요소 내 클릭 지점 오프셋
+      offsetY: clientY - canvasRect.top - el.y,
     };
     return true;
   }
@@ -82,14 +85,16 @@ const CanvasEditor = forwardRef(function CanvasEditor(
   // 드래그 공통 이동 로직
   function moveDragElement(clientX, clientY) {
     if (!dragState.current) return;
-    const { id, startX, startY } = dragState.current;
+    const { id, offsetX, offsetY } = dragState.current;
+    // 매 이동마다 캔버스 현재 위치를 다시 읽어 정확한 캔버스 좌표 계산
+    const canvasRect = canvasRef.current.getBoundingClientRect();
     setElements((prev) =>
       prev.map((el) => {
         if (el.id !== id) return el;
         const elW = el.width || 60;
         const elH = el.height || (el.type === 'text' ? Math.round(el.fontSize * el.lineHeight + 16) : 30);
-        const newX = Math.max(0, Math.min(canvasSize.width - elW, clientX - startX));
-        const newY = Math.max(0, Math.min(canvasSize.height - elH, clientY - startY));
+        const newX = Math.max(0, Math.min(canvasSize.width - elW, clientX - canvasRect.left - offsetX));
+        const newY = Math.max(0, Math.min(canvasSize.height - elH, clientY - canvasRect.top - offsetY));
         return { ...el, x: newX, y: newY };
       })
     );
