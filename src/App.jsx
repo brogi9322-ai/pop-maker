@@ -30,6 +30,7 @@ export default function App() {
   const [currentDocName, setCurrentDocName] = useState('내 POP 템플릿');
   const [saving, setSaving] = useState(false);
   const [leftTab, setLeftTab] = useState('template'); // 'template' | 'layer'
+  const [mobileTab, setMobileTab] = useState('canvas'); // 'left' | 'canvas' | 'right'
   const [darkMode, setDarkMode] = useState(() => {
     // 시스템 설정 또는 localStorage 저장값 반영
     const saved = localStorage.getItem('theme');
@@ -530,7 +531,7 @@ export default function App() {
       />
 
       <div className="app-layout">
-        <aside className="sidebar left-sidebar">
+        <aside className={`sidebar left-sidebar ${mobileTab === 'left' ? 'mobile-active' : ''}`}>
           {/* 좌측 탭 전환 */}
           <div className="sidebar-tab-bar">
             <button
@@ -639,7 +640,7 @@ export default function App() {
           )}
         </aside>
 
-        <main className="canvas-area">
+        <main className={`canvas-area ${mobileTab === 'canvas' ? 'mobile-active' : ''}`}>
           {saving && <div className="saving-overlay">저장 중...</div>}
           <CanvasEditor
             ref={canvasRef}
@@ -655,7 +656,7 @@ export default function App() {
           />
         </main>
 
-        <aside className="sidebar right-sidebar">
+        <aside className={`sidebar right-sidebar ${mobileTab === 'right' ? 'mobile-active' : ''}`}>
           <PropsPanel
             selected={selectedEl}
             onChange={handleChangeElement}
@@ -666,6 +667,31 @@ export default function App() {
           />
         </aside>
       </div>
+
+      {/* 모바일 하단 네비게이션 */}
+      <nav className="mobile-nav">
+        <button
+          className={`mobile-nav-btn ${mobileTab === 'left' ? 'active' : ''}`}
+          onClick={() => setMobileTab('left')}
+        >
+          <span className="mobile-nav-icon">📋</span>
+          <span className="mobile-nav-label">패널</span>
+        </button>
+        <button
+          className={`mobile-nav-btn ${mobileTab === 'canvas' ? 'active' : ''}`}
+          onClick={() => setMobileTab('canvas')}
+        >
+          <span className="mobile-nav-icon">🎨</span>
+          <span className="mobile-nav-label">캔버스</span>
+        </button>
+        <button
+          className={`mobile-nav-btn ${mobileTab === 'right' ? 'active' : ''}`}
+          onClick={() => setMobileTab('right')}
+        >
+          <span className="mobile-nav-icon">⚙️</span>
+          <span className="mobile-nav-label">속성</span>
+        </button>
+      </nav>
 
       {showBanplusModal && (
         <BanplusModal
