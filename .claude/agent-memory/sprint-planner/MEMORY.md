@@ -31,9 +31,9 @@
 | Sprint 3 | Firebase Hosting 배포 + 내보내기 최적화 + JSON 가져오기/내보내기 | ✅ 완료 | 2026-03-15 |
 | Sprint 4 | 반응형 모바일 지원 + 터치 드래그 + Context API 리팩토링 | ✅ 완료 | 2026-03-15 |
 | Sprint 5 | 공개 템플릿 공유 + UI 폴리싱 (온보딩, 에러, 로딩) | ✅ 완료 | 2026-03-15 |
-| Sprint 6 | 모바일 미리보기 + AI 이미지 생성 (Claude API + Functions) | ⬜ 예정 | — |
+| Sprint 6 | 테스트 커버리지 확대 + CI/CD 개선 | 🔄 진행 중 | — |
 
-**다음 스프린트 번호: 6**
+**다음 스프린트 번호: 7**
 
 ## 브랜치 전략
 
@@ -69,11 +69,37 @@
 
 PR: https://github.com/brogi9322-ai/pop-maker/pull/9
 
-## 다음 스프린트(Sprint 6) 주요 항목
+## Sprint 6 계획 요약 (2026-03-15)
 
-- 모바일 미리보기 (저장된 작업물 조회 전용 뷰, 썸네일 표시) — Sprint 5 이월
+### 목표: 테스트 커버리지 확대 + CI/CD 개선
+
+피드백 점수 개선: 테스트(4/8→7/8), CI/CD(3/7→6/7)
+
+### 추가 예정 테스트 파일 (우선순위 순)
+
+| 우선순위 | 파일 | 주요 테스트 항목 |
+|---------|------|----------------|
+| P0 | `src/utils/id.test.js` | genId 접두사, 고유성 |
+| P0 | `src/utils/storage.test.js` | validateBizNumber, formatBizNumber, getUserId, Firestore CRUD (vi.mock) |
+| P1 | `src/components/BanplusModal.test.jsx` | 폼 입력, 유효성 검사, onLogin/onClose 호출 |
+| P1 | `src/components/SavedTemplatesModal.test.jsx` | 탭 전환, 공개 토글, 링크 복사, 삭제 |
+| P2 | `src/components/LayerPanel.test.jsx` | 잠금/숨기기/이름 변경, DnD |
+
+### CI 개선 항목
+
+- `npm test` → `npm run test:coverage` 교체
+- 커버리지 artifact 업로드 (`actions/upload-artifact@v4`)
+- `vite.config.js` 커버리지 임계값 추가 (lines 60%)
+
+### Firebase 목킹 패턴 (확립 예정)
+
+`vi.mock('../firebase')` + `vi.mock('firebase/firestore')` 두 레벨 목킹 필요.
+`serverTimestamp()`도 mock 반환값 설정 필요.
+
+### Sprint 7 예정 (이번 Sprint 범위 아님)
+
+- 모바일 미리보기 전용 뷰 (Sprint 5 이월)
 - AI 이미지 생성 (Claude API + Firebase Functions 프록시)
-- Firebase Blaze 플랜 전환 필요
-- 생성된 이미지를 캔버스 요소로 삽입
-- Firestore 보안 규칙 파일 업데이트 적용
-- SharePage 인라인 스타일 CSS 변수 마이그레이션 (Medium 이슈)
+- Firebase Blaze 플랜 전환
+- Firestore 보안 규칙 파일 업데이트
+- SharePage CSS 변수 마이그레이션
