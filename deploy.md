@@ -9,7 +9,7 @@
 
 ### Sprint 7 완료 — 2026-03-15
 
-PR: (PR 생성 후 URL 업데이트 예정)
+PR: https://github.com/brogi9322-ai/pop-maker/pull/14
 
 포함된 주요 기능:
 - Playwright E2E 테스트 도입 (chromium + mobile-chrome 프로젝트)
