@@ -25,8 +25,16 @@ jobs:
       - name: 린트 검사
         run: npm run lint
 
-      - name: 테스트 실행
-        run: npm test
+      - name: 테스트 및 커버리지 측정
+        run: npm run test:coverage
+
+      - name: 커버리지 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
 
       - name: 빌드 검증
         run: npm run build
