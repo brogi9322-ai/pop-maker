@@ -7,12 +7,12 @@
 
 ## 프로덕션 배포 (Sprint 6) — 2026-03-15
 
-PR: (생성 예정)
+PR: https://github.com/brogi9322-ai/pop-maker/pull/13
 배포 URL: https://pop-maker-9209f.web.app
 브랜치: develop → master
 
 포함된 주요 변경 사항:
-- 테스트 커버리지 확대 — Vitest 기반 테스트 60개 통과 (4 test files)
+- 테스트 커버리지 확대 — Vitest 기반 테스트 135개 통과 (9 test files)
 - CI/CD 자동화 — GitHub Actions 워크플로우 추가
 - EditorContext 리팩토링 및 정리
 - SharePage 컴포넌트 추가 (공개 링크 공유 뷰)
@@ -20,8 +20,9 @@ PR: (생성 예정)
 
 사전 점검 결과:
 - ✅ GitHub Actions CI (develop) — 모두 success
-- ✅ npm run lint — 에러 0건, 경고 2건 (무해)
-- ✅ npm test -- --run — 60 tests 통과
+- ✅ npm run lint — 에러 0건
+- ✅ npm test — 135 tests 통과 (9 test files)
+- ✅ npm run build — 성공
 
 수동 검증 필요 항목:
 - ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
