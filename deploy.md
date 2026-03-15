@@ -5,26 +5,23 @@
 
 ---
 
-### Sprint 8 완료 — 2026-03-16
+### 프로덕션 배포 — Sprint 8 (2026-03-16)
 
-PR: https://github.com/brogi9322-ai/pop-maker/pull/15
-브랜치: sprint8 → develop
+포함 스프린트: Sprint 8
+PR: https://github.com/brogi9322-ai/pop-maker/pull/16
 
-포함된 주요 기능:
-- Vitest 신규 테스트 7개 파일, 87개 케이스 추가 (전체 222개 테스트 통과)
-- husky + lint-staged: pre-commit 시 ESLint 자동 수정
-- `docs/ci-policy.md` 실제 스택 기준 재작성
+- ✅ lint 통과 (경고 0건)
+- ✅ test 통과 (222개, 16개 파일)
+- ✅ build 성공
+- ✅ main merge → GitHub Actions 자동 배포
 
-검증 결과:
-- ✅ npm run lint 경고 없음
-- ✅ npm test 222개 통과 (16개 파일)
-- ✅ npm run build 성공
+배포 URL: https://pop-maker-9209f.web.app
 
 수동 검증 필요 항목:
-- ⬜ 로컬 `npm run dev`로 주요 기능 동작 확인
+- ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
+- ⬜ 캔버스 편집 기본 흐름 (요소 추가 → 이동 → 저장)
+- ⬜ Firebase Firestore 읽기/쓰기 동작 확인 (콘솔 에러 없음)
 - ⬜ 커밋 시 pre-commit 훅(husky lint-staged) 정상 실행 확인
-
-상세 리뷰 결과: `docs/sprint/sprint8.md` 참조
 
 ---
 
