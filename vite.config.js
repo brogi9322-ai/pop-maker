@@ -18,14 +18,8 @@ export default defineConfig({
         'src/test/**',
         'src/main.jsx',
         'src/firebase.js',
-        // 아래 파일은 이번 Sprint 테스트 범위 외 (복잡한 DOM 이벤트 / Context 의존)
+        // CanvasEditor는 복잡한 DOM 이벤트 의존으로 테스트 제외 유지
         'src/components/CanvasEditor.jsx',
-        'src/components/PropsPanel.jsx',
-        'src/components/AssetPanel.jsx',
-        'src/components/TemplatePanel.jsx',
-        'src/components/SharePage.jsx',
-        'src/hooks/useAuth.js',
-        'src/hooks/useEditor.js',
       ],
       thresholds: {
         lines: 75,

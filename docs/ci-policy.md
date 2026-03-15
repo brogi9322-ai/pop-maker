@@ -1,5 +1,4 @@
 > **개발 프로세스/검증 절차**: [`docs/dev-process.md`](dev-process.md) 참조
-> **롤백 시나리오 상세(DB 백업 포함)**: [`docs/dev-process.md` 섹션 6.4](dev-process.md#64-롤백-시나리오) 참조
 
 ## Git 브랜치 전략 & 배포 흐름
 
@@ -7,169 +6,183 @@
 
 | 브랜치 | 역할 | 배포 환경 |
 |--------|------|----------|
-| `sprint{n}` | 스프린트 단위 개발 작업 | 로컬 |
-| `develop` | 스테이징 통합 브랜치 | 로컬 Docker |
-| `main` | 프로덕션 브랜치 | 프로덕션 서버 |
-| `hotfix/*` | 긴급 운영 패치 | main + develop 동시 반영 |
+| `sprint{n}` | 스프린트 단위 기능 개발 | 로컬 개발 서버 |
+| `develop` | 스테이징 통합 브랜치 | 로컬 검증 (`npm run preview`) |
+| `main` | 프로덕션 브랜치 | Firebase Hosting |
+| `hotfix/*` | 긴급 운영 패치 (main 기반 분기) | Firebase Hosting |
 
 ---
 
-### 배포 흐름
+### Sprint 배포 흐름
 
 ```
 sprint{n}
-  ↓ PR & merge (스프린트 완료 시)
-develop ──────────────→ 로컬 docker compose up --build 로 스테이징 검증
-  ↓ PR & merge (QA 통과 후)
-main    ──────────────→ GitHub Actions → 프로덕션 서버 자동 배포
-  ↓ tag
-v1.0.0, v1.1.0 ...
+  ↓ PR & merge → develop
+develop ──── 로컬 검증 (npm run preview) ────
+  ↓ PR & merge → main (QA 통과 후)
+main    ──── GitHub Actions → Firebase Hosting 자동 배포
 ```
 
 ### Hotfix 배포 흐름
 
 ```
-hotfix/*
-  ↓ PR & merge (긴급 패치)
-main    ──────────────→ GitHub Actions → 프로덕션 서버 자동 배포
+hotfix/*  (main 기반 분기)
+  ↓ PR & merge → main
+main    ──── GitHub Actions → Firebase Hosting 자동 배포
   ↓ 역머지
-develop ──────────────→ main 변경사항 동기화
+develop ──── main 변경사항 동기화
 ```
-
----
-
-### Docker 이미지 태깅 규칙
-
-> TODO: 프로젝트 GHCR 이미지명을 설정하세요.
-
-| 이미지 | Registry |
-|--------|---------|
-| 백엔드 | `ghcr.io/{GITHUB_ORG}/{PROJECT}-backend` |
-| 프론트엔드 | `ghcr.io/{GITHUB_ORG}/{PROJECT}-frontend` |
-| nginx | `ghcr.io/{GITHUB_ORG}/{PROJECT}-nginx` |
-
-| 브랜치 | Image Tag |
-|--------|-----------|
-| `develop` merge | 이미지 빌드 없음 — 로컬 Docker로만 검증 |
-| `main` merge | `backend:latest`, `backend:{commit SHA}`, `frontend:latest`, `frontend:{commit SHA}` |
-| `hotfix` | `backend:{MAJOR.MINOR.PATCH}`, `frontend:{MAJOR.MINOR.PATCH}` |
-
-> 버전은 Semantic Versioning (`MAJOR.MINOR.PATCH`) 기준
 
 ---
 
 ### 핵심 규칙
 
-- `main` 직접 push 금지 — 반드시 PR + 리뷰 후 merge
-- `develop` → `main` merge는 QA 통과 후 진행
+- `main` / `develop` 직접 push 금지 — 반드시 PR + 리뷰 후 merge
+- `develop` → `main` merge는 로컬 QA 통과 후 진행
 - 긴급 패치는 **`main` 기반**으로 `hotfix/*` 브랜치를 생성하여 작업
 - hotfix PR은 **`main`으로 직접** 생성 (develop 거치지 않음)
 - main merge 후 반드시 `develop`에 역머지하여 동기화
-- hotfix 범위 제한: 파일 3개 이하, 코드 50줄 이하, DB 변경 없음, 새 의존성 없음
-- 스프린트 병렬 진행 시 `develop` merge 충돌 주의
+- hotfix 범위 제한: 파일 3개 이하, 코드 50줄 이하, 새 의존성(npm) 없음
 
 ---
 
-## CI 파이프라인 (PR 체크)
+## CI 파이프라인 (`.github/workflows/ci.yml`)
 
 PR이 `develop` 또는 `main`으로 올라오면 GitHub Actions가 자동으로 실행됩니다.
 
+### 트리거 조건
+
+```yaml
+on:
+  pull_request:
+    branches: [develop, main]
+```
+
+### CI 단계 (순서)
+
+| 단계 | 명령어 | 목적 |
+|------|--------|------|
+| 1. 린트 | `npm run lint` | ESLint 규칙 준수 확인 |
+| 2. 테스트 | `npm test` | Vitest 단위/컴포넌트 테스트 통과 확인 |
+| 3. 빌드 | `npm run build` | Vite 프로덕션 빌드 성공 확인 |
+
+### 커버리지 임계값 (vite.config.js 기준)
+
+| 항목 | 최솟값 |
+|------|--------|
+| Lines | 75% |
+| Functions | 70% |
+| Branches | 65% |
+| Statements | 75% |
+
 ### 필수 통과 조건
 
-1. **pytest 통과** — `backend/tests/` 전체 테스트 통과 필수
-2. **Docker 이미지 빌드 성공** — 백엔드/프론트엔드 이미지 빌드 확인
-
-PR merge는 위 조건이 모두 통과된 후에만 가능합니다 (Branch Protection Rule).
+PR merge는 CI 3단계(lint → test → build)가 모두 통과된 후에만 가능합니다.
+Branch Protection Rule에서 `ci` 워크플로우를 required status check로 설정합니다.
 
 ---
 
-## CD 파이프라인 (배포 흐름)
+## E2E 파이프라인 (`.github/workflows/e2e.yml`)
+
+`main` 브랜치에 push(merge)되면 배포 후 자동으로 Playwright E2E 검증이 실행됩니다.
+
+### 트리거 조건
+
+```yaml
+on:
+  push:
+    branches: [main]
+```
+
+### E2E 단계 (순서)
+
+1. Firebase Hosting 배포 완료 대기 (또는 배포 후 트리거)
+2. Playwright 설치 (`npx playwright install --with-deps`)
+3. E2E 테스트 실행 (`npx playwright test`)
+4. 결과 아티팩트 업로드 (`playwright-report/`)
+
+### E2E 테스트 파일 위치
+
+```
+e2e/
+└── app.spec.js   # 핵심 사용자 플로우 검증 (캔버스 진입, 템플릿 선택 등)
+```
+
+---
+
+## CD 파이프라인 — Firebase Hosting 배포
 
 ### develop merge 후 (스테이징 검증)
 
-`develop` 브랜치는 별도 서버 없이 **로컬 Docker**로 스테이징 검증합니다.
+`develop` 브랜치는 별도 배포 서버 없이 **로컬에서 검증**합니다.
 
 ```bash
-# 로컬에서 최신 코드 반영 후 검증
+# 최신 코드 반영 후 프리뷰 빌드로 검증
 git pull origin develop
-docker compose up --build
+npm run build
+npm run preview
 ```
 
-### main merge 후 (프로덕션 배포)
+### main merge 후 (프로덕션 자동 배포)
 
 `main` 브랜치에 merge되면 GitHub Actions가 자동으로:
 
-1. Docker 이미지 빌드 (backend + frontend + nginx)
-2. GHCR에 이미지 push
-3. 프로덕션 서버에 SSH 접속
-4. `docker compose pull && docker compose up -d` 실행
+1. `npm run build` 실행 → `dist/` 디렉터리 생성
+2. `firebase deploy --only hosting` 실행
+3. Firebase Hosting에 정적 파일 업로드
+
+배포 완료 후 Firebase Hosting URL에서 서비스가 갱신됩니다.
+
+### Firebase Hosting 관련 설정 파일
+
+| 파일 | 용도 |
+|------|------|
+| `firebase.json` | Hosting 설정 (rewrites, headers 등) |
+| `.firebaserc` | 프로젝트 ID 연결 |
+| `dist/` | 빌드 결과물 (배포 대상) |
 
 ---
 
-## 환경별 설정 관리
+## 환경 설정 관리
 
 | 환경 | 설정 방법 | 비고 |
 |------|----------|------|
 | 로컬 개발 | `.env` 파일 | Git 미추적 (`.gitignore`) |
-| 프로덕션 | GitHub Secrets | Actions에서 주입 |
+| 프로덕션 (CI/CD) | GitHub Secrets | Actions에서 자동 주입 |
 
-> **프로덕션 .env 파일 관리:** 서버의 `{APP_PATH}/.env`는 서버에 수동으로 생성합니다. GitHub Secrets와 별도로 관리되며, 배포 시 자동으로 덮어쓰지 않습니다. 최초 서버 설정 시 `.env.example`을 복사하여 작성하세요.
-
-### GitHub Secrets 목록 (프로덕션 필수)
+### GitHub Secrets 목록
 
 | Secret 이름 | 설명 |
 |------------|------|
-| `LIGHTSAIL_SSH_KEY` | 서버 인스턴스 SSH 프라이빗 키 |
-| `LIGHTSAIL_HOST` | 서버 IP 또는 도메인 |
-| `LIGHTSAIL_USER` | SSH 사용자명 (예: `ubuntu`) |
-| `POSTGRES_PASSWORD` | DB 비밀번호 |
-| `JWT_SECRET` | JWT 서명 키 |
-| `SECRET_KEY` | 앱 시크릿 키 |
-| `NEXT_PUBLIC_API_URL` | 프론트엔드에서 사용하는 백엔드 API URL |
+| `FIREBASE_TOKEN` | Firebase CLI 배포 인증 토큰 |
+| `VITE_FIREBASE_API_KEY` | Firebase Web API 키 |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase 프로젝트 ID |
+| `VITE_FIREBASE_APP_ID` | Firebase App ID |
+| 기타 `VITE_FIREBASE_*` | firebase.js에서 사용하는 환경변수 |
+
+> `.env.example`을 참조하여 필요한 환경변수를 모두 Secrets로 등록해야 합니다.
 
 ---
 
 ## 롤백 절차
 
-> 아래는 CI/CD 관점의 롤백 요약입니다.
-> 시나리오별 상세 절차(DB 백업 포함)는 [docs/dev-process.md 섹션 6.4](dev-process.md#64-롤백-시나리오) 참조.
+### Firebase Hosting 롤백
 
-### 빠른 롤백 (Docker 이미지)
-
-```bash
-# 서버 SSH 접속 후
-cd {APP_PATH}
-docker compose -f docker-compose.prod.yml down
-docker pull ghcr.io/{GITHUB_ORG}/{PROJECT}-backend:v{이전_버전}
-docker pull ghcr.io/{GITHUB_ORG}/{PROJECT}-frontend:v{이전_버전}
-docker compose -f docker-compose.prod.yml up -d
-```
-
-### DB 마이그레이션 롤백
+Firebase Console 또는 CLI에서 이전 배포 버전으로 즉시 롤백합니다.
 
 ```bash
-# Alembic 다운그레이드 (주의: 데이터 손실 가능)
-alembic downgrade -1
+# Firebase CLI로 이전 릴리스 목록 확인
+firebase hosting:releases:list
+
+# 특정 버전으로 롤백 (버전 ID는 위 명령으로 확인)
+firebase hosting:rollback
 ```
 
-> ⚠️ DB 마이그레이션 롤백은 데이터 손실이 발생할 수 있습니다.
-> 롤백 전 반드시 DB 백업을 수행하세요.
-
----
-
-## HTTPS/TLS
-
-### 방법 1: Let's Encrypt + certbot (권장)
+### 코드 레벨 롤백
 
 ```bash
-# 서버 인스턴스에서
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d yourdomain.com
+# main에서 문제 커밋을 되돌리는 revert PR 생성
+git revert <commit-sha>
+git push origin hotfix/revert-xxx
+# → PR to main → merge → 자동 재배포
 ```
-
-Nginx 설정에서 certbot이 자동으로 SSL 블록을 추가합니다. 90일마다 자동 갱신됩니다.
-
-### 방법 2: 로드밸런서 SSL
-
-AWS Lightsail 또는 다른 클라우드 콘솔에서 로드밸런서 생성 후 SSL 인증서를 연결합니다.
-추가 비용이 발생하지만 관리가 단순합니다.
