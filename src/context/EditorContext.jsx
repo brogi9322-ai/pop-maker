@@ -282,11 +282,18 @@ export function EditorProvider({ children }) {
   async function generateThumbnail() {
     const canvas = canvasRef.current?.getCanvas();
     if (!canvas) return null;
+    // 썸네일 캡처 시 선택 핸들이 포함되지 않도록 임시 해제
+    const prevSelectedId = selectedId;
+    setSelectedId(null);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     try {
       const { default: html2canvas } = await import('html2canvas');
       const c = await html2canvas(canvas, { scale: 0.3, useCORS: true, logging: false });
       return c.toDataURL('image/jpeg', 0.7);
     } catch { return null; }
+    finally {
+      setSelectedId(prevSelectedId);
+    }
   }
 
   async function handleSaveTemplate() {
@@ -338,8 +345,16 @@ export function EditorProvider({ children }) {
   async function captureCanvas(scale = 2) {
     const canvas = canvasRef.current?.getCanvas();
     if (!canvas) throw new Error('캔버스를 찾을 수 없습니다.');
+    // 내보내기 시 선택 핸들(테두리·조절점)이 포함되지 않도록 임시 해제
+    const prevSelectedId = selectedId;
+    setSelectedId(null);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const { default: html2canvas } = await import('html2canvas');
-    return html2canvas(canvas, { scale, useCORS: true, logging: false, backgroundColor: null });
+    try {
+      return await html2canvas(canvas, { scale, useCORS: true, logging: false, backgroundColor: null });
+    } finally {
+      setSelectedId(prevSelectedId);
+    }
   }
 
   async function handleSavePng() {
