@@ -129,4 +129,5 @@ Vitest 테스트: 60개 통과
 - Firebase Blaze 플랜 전환
 - Firestore 보안 규칙 파일 업데이트
 - SharePage CSS 변수 마이그레이션
+<<<<<<< HEAD
 - Firebase 인증 기반 E2E 테스트 (캔버스 편집/저장 흐름)

@@ -39,15 +39,20 @@ src/
 │   ├── PropsPanel.jsx        # 객체 속성 편집 패널
 │   ├── Header.jsx            # 헤더 (저장/내보내기 버튼)
 │   ├── BanplusModal.jsx      # 반플러스 관련 모달
-│   ├── SavedTemplatesModal.jsx  # 저장된 템플릿 모달
+│   ├── SavedTemplatesModal.jsx  # 저장된 템플릿 모달 (공개/비공개 토글, 공유 링크)
+│   ├── SharePage.jsx         # 공유 링크 읽기 전용 미리보기 (/share/:id)
 │   ├── LayerPanel.jsx        # 레이어 패널 (드래그 재정렬, 잠금/숨기기)
 │   ├── AssetPanel.jsx        # 에셋 패널 (약국 SVG 아이콘 라이브러리)
 │   └── Toast.jsx             # 토스트 알림 컴포넌트
+├── context/
+│   └── EditorContext.jsx     # EditorProvider — 전체 에디터 상태 및 핸들러 관리
 ├── hooks/
 │   ├── useAuth.js            # Firebase 인증 훅
+│   ├── useEditor.js          # useEditor 커스텀 훅 (EditorContext 소비)
 │   ├── useHistory.js         # Undo/Redo 히스토리 커스텀 훅
 │   └── useToast.js           # 토스트 알림 커스텀 훅
 ├── utils/
+│   ├── id.js                 # genId — 요소 고유 ID 생성 유틸
 │   └── storage.js            # Firestore 저장/불러오기 유틸
 ├── data/
 │   ├── templates.js          # 기본 템플릿 데이터

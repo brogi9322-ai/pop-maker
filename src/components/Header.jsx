@@ -16,6 +16,8 @@ export default function Header({
   canRedo,
   darkMode,
   onToggleDarkMode,
+  saving,
+  savingOp,
 }) {
   const displayBiz = bizNumber
     ? bizNumber.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3')
@@ -59,8 +61,8 @@ export default function Header({
         <button className="btn btn-secondary" onClick={onLoadTemplates}>
           📂 내 템플릿
         </button>
-        <button className="btn btn-secondary" onClick={onSaveTemplate}>
-          💾 저장
+        <button className="btn btn-secondary" onClick={onSaveTemplate} disabled={saving}>
+          {savingOp === 'template' ? '💾 저장 중...' : '💾 저장'}
         </button>
         <button className="btn btn-secondary" onClick={onExportJson} title="작업물을 JSON 파일로 내보내기">
           📤 JSON 내보내기
@@ -70,11 +72,11 @@ export default function Header({
           <input type="file" accept=".json" style={{ display: 'none' }} onChange={onImportJson} />
         </label>
         <div className="header-divider" />
-        <button className="btn btn-primary" onClick={onSavePng}>
-          🖼 PNG
+        <button className="btn btn-primary" onClick={onSavePng} disabled={saving}>
+          {savingOp === 'png' ? '⏳ 변환 중...' : '🖼 PNG'}
         </button>
-        <button className="btn btn-primary" onClick={onSavePdf}>
-          📄 PDF
+        <button className="btn btn-primary" onClick={onSavePdf} disabled={saving}>
+          {savingOp === 'pdf' ? '⏳ 변환 중...' : '📄 PDF'}
         </button>
         <button className="btn btn-success" onClick={onPrint}>
           🖨 인쇄

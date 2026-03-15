@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   updateDoc,
   deleteDoc,
   doc,
@@ -59,6 +60,7 @@ export async function saveTemplate({ name, canvasData, thumbnail, isBanplus, biz
     userId,
     isBanplus: !!isBanplus,
     bizNumber: isBanplus ? bizNumber.replace(/-/g, '') : null,
+    isPublic: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -116,4 +118,20 @@ export async function updateTemplate(id, { name, canvasData, thumbnail }) {
 // 템플릿 삭제
 export async function deleteTemplate(id) {
   await deleteDoc(doc(db, 'templates', id));
+}
+
+// 템플릿 공개/비공개 설정
+export async function updateTemplateVisibility(id, isPublic) {
+  const docRef = doc(db, 'templates', id);
+  await updateDoc(docRef, { isPublic: !!isPublic, updatedAt: serverTimestamp() });
+}
+
+// 공개 템플릿 단건 조회 (공유 링크용, Firestore 규칙에서 isPublic 허용 필요)
+export async function getPublicTemplate(id) {
+  const docRef = doc(db, 'templates', id);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) throw new Error('템플릿을 찾을 수 없습니다.');
+  const data = snap.data();
+  if (!data.isPublic) throw new Error('비공개 템플릿입니다.');
+  return { id: snap.id, ...data };
 }
