@@ -1,33 +1,33 @@
 # 배포 후 수동 작업 가이드
 
 > **목적**: 현재 완료되지 않은 수동 검증/작업 항목만 유지합니다.
-> 완료된 기록은 `docs/deploy-history/YYYY-MM-DD.md`로 이동됩니다.
+> 완료된 기록은 `docs/deploy-history/YYYY-MM-DD-sprint{n}.md`로 이동됩니다.
 
 ---
 
-## 프로덕션 배포 (Sprint 4~5) — 2026-03-15
+## 프로덕션 배포 (Sprint 6) — 2026-03-15
 
-PR: https://github.com/brogi9322-ai/pop-maker/pull/10
+PR: (생성 예정)
 배포 URL: https://pop-maker-9209f.web.app
-머지 커밋: e6b4c760ff7f33e38dc5215dc22ff06ee525bf69
+브랜치: develop → master
 
-포함된 주요 기능:
-- 반응형 모바일 레이아웃 (하단 탭 네비게이션)
-- 터치 드래그 지원
-- Context API 리팩토링 (App.jsx 688→163줄)
-- 에셋 SVG 정리
-- 공개 템플릿 공유 (`isPublic` 플래그 + 공유 링크 `/share/:id`)
-- UI 폴리싱 — 온보딩 힌트, 로딩 상태 개선, 에러 메시지 구체화
+포함된 주요 변경 사항:
+- 테스트 커버리지 확대 — Vitest 기반 테스트 60개 통과 (4 test files)
+- CI/CD 자동화 — GitHub Actions 워크플로우 추가
+- EditorContext 리팩토링 및 정리
+- SharePage 컴포넌트 추가 (공개 링크 공유 뷰)
+- 에셋/데이터 구조 개선
 
-검증 결과:
-- ✅ npm run lint 경고 없음
-- ✅ npm run build 성공 (260 modules)
+사전 점검 결과:
+- ✅ GitHub Actions CI (develop) — 모두 success
+- ✅ npm run lint — 에러 0건, 경고 2건 (무해)
+- ✅ npm test -- --run — 60 tests 통과
 
 수동 검증 필요 항목:
-- ⬜ 모바일(375px)에서 하단 탭 전환 동작
-- ⬜ 모바일에서 요소 터치 드래그 동작
+- ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
+- ⬜ 캔버스 편집 기본 흐름 (요소 추가 → 이동 → 저장)
 - ⬜ 공유 링크 `/share/:id` 정상 접근
-- ⬜ 공개 템플릿 공유 플래그 동작
+- ⬜ 모바일(375px)에서 하단 탭 전환 및 터치 드래그 동작
 
 ---
 
