@@ -33,8 +33,9 @@
 | Sprint 5 | 공유 + UI 폴리싱 | ✅ 완료 | 2026-03-15 |
 | Sprint 6 | 테스트 커버리지 확대 + CI/CD 개선 | ✅ 완료 | 2026-03-15 |
 | Sprint 7 | Playwright E2E 테스트 도입 — 배포 후 검증 자동화 | ✅ 완료 | 2026-03-15 |
+| Sprint 8 | 테스트 커버리지 확대 및 CI/CD 자동화 | ✅ 완료 | 2026-03-16 |
 
-**다음 스프린트 번호: 8**
+**다음 스프린트 번호: 9**
 
 ## 브랜치 전략
 
@@ -59,75 +60,21 @@
 - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
 - Playwright E2E 파일(`e2e/*.spec.js`)은 Vitest가 수집하면 오류 발생 → `vite.config.js`의 `test.exclude`에 `e2e/**` 패턴 추가 필수 (Sprint 7 수정 사례)
 - Playwright 및 Node.js 환경 파일은 ESLint의 browser globals 설정과 충돌 → `eslint.config.js`의 `globalIgnores`에 `e2e/`, `playwright.config.js` 추가 필수 (Sprint 7 수정 사례)
+- `renderHook`에서 여러 번 `addText()` 등 elements 클로저를 사용하는 함수를 연속 호출할 때 stale closure 문제 발생 → 각 호출을 별도 `act()` 블록으로 분리해야 함 (Sprint 8 테스트 작성 사례)
+- `window.matchMedia`는 jsdom에서 미구현 → `src/test/setup.js`에 목 추가 필수 (Sprint 8 발견)
 
-## Sprint 5 완료 요약 (2026-03-15)
+## Sprint 8 완료 요약 (2026-03-16)
 
-- ✅ 공개 템플릿 공유 (`isPublic` + `/share/:id` 읽기 전용 미리보기)
-- ✅ 온보딩 힌트 (localStorage `onboardingDone` 저장)
-- ✅ 로딩 상태 개선 (savingOp 상태 + 전체화면 오버레이)
-- ✅ 에러 메시지 구체화 (`getErrorMessage` 함수, EditorContext)
-- ✅ EditorContext 분리 (`src/context/EditorContext.jsx`)
-- ⬜ Firestore 보안 규칙 파일 업데이트 — 다음 배포 시 반영 필요
-- ⬜ 모바일 미리보기 전용 뷰 — Sprint 6으로 이월
+- ✅ Vitest 신규 테스트 7개 파일, 87개 케이스 추가 (전체 222개 테스트 통과)
+  - `src/hooks/useAuth.test.js` (16개), `src/hooks/useEditor.test.js` (5개)
+  - `src/components/TemplatePanel.test.jsx` (9개), `src/components/AssetPanel.test.jsx` (7개)
+  - `src/components/PropsPanel.test.jsx` (13개), `src/components/SharePage.test.jsx` (9개)
+  - `src/context/EditorContext.test.jsx` (28개)
+- ✅ `src/test/setup.js`: `window.matchMedia` jsdom 목 추가
+- ✅ `vite.config.js`: coverage.exclude에서 테스트 완료 파일 제거
+- ✅ husky + lint-staged 설치: pre-commit 시 `eslint --fix` 자동 실행
+- ✅ `docs/ci-policy.md`: 실제 스택(Vite/Vitest/Firebase) 기준으로 재작성
+- 커버리지 결과: Lines 81.44%, Functions 75.51%, Branches 80.57%, Statements 81.58%
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 9 이월
 
-PR: https://github.com/brogi9322-ai/pop-maker/pull/9
-
-## Sprint 6 완료 요약 (2026-03-15)
-
-- ✅ 신규 테스트 5개 파일 추가 (135개 테스트 전체 통과)
-  - `src/utils/id.test.js`, `src/utils/storage.test.js`
-  - `src/components/BanplusModal.test.jsx`, `src/components/SavedTemplatesModal.test.jsx`
-  - `src/components/LayerPanel.test.jsx`
-- ✅ `@vitest/coverage-v8` 패키지 추가
-- ✅ `vite.config.js` 커버리지 임계값 추가 (lines 75%, branches 65%)
-- ✅ `.github/workflows/ci.yml`: `npm run test:coverage` + artifact 업로드
-- ✅ `eslint.config.js`: `coverage/` 폴더 제외
-- ✅ 테스트 커버리지 실측: lines 86.02%, branches 85.25%, funcs 81.81%
-- ✅ Firebase 목킹 패턴 확립 (`vi.mock('../firebase')` + `vi.mock('firebase/firestore')`)
-- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 7 이월
-
-## Sprint 7 완료 요약 (2026-03-15)
-
-- ✅ `@playwright/test` 패키지 추가 (devDependencies)
-- ✅ `playwright.config.js` — baseURL, chromium + mobile-chrome 프로젝트, retries:2
-- ✅ `e2e/smoke.spec.js` — 앱 기본 로딩 및 UI 렌더링 검증 6개 테스트
-- ✅ `e2e/share.spec.js` — 공유 링크 검증, E2E_SHARE_ID 미설정 시 graceful skip
-- ✅ `e2e/mobile.spec.js` — 모바일 레이아웃 검증 4개 테스트
-- ✅ `.github/workflows/e2e.yml` — master push + workflow_dispatch, artifact 업로드
-- ✅ `eslint.config.js` — e2e/, playwright.config.js, coverage/ globalIgnores 추가
-- ✅ `vite.config.js` — exclude: ['e2e/**'] 추가 (Playwright 파일 Vitest 수집 방지)
-- ⬜ 모바일 가로 스크롤 overflow 버그 수정 → Sprint 8 이월
-- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 8 이월 (Sprint 6에서 이월)
-
-로컬 테스트 결과: 19 passed, 7 skipped (의도된 skip)
-Vitest 테스트: 60개 통과
-
-## Sprint 7 계획 요약 (2026-03-15)
-
-### 목표: Playwright E2E 테스트 도입 — 배포 후 수동 검증 완전 자동화
-
-### 주요 산출물
-
-| 파일 | 내용 |
-|------|------|
-| `playwright.config.js` | baseURL(https://pop-maker-9209f.web.app), chromium + mobile-chrome 프로젝트, retries:2 |
-| `e2e/smoke.spec.js` | 앱 접속 및 기본 UI 렌더링 검증 |
-| `e2e/share.spec.js` | `/share/:id` 공개 페이지 접근 검증, `E2E_SHARE_ID` 미설정 시 graceful skip |
-| `e2e/mobile.spec.js` | 375px 모바일 레이아웃 검증 (하단 탭, 패널 전환) |
-| `.github/workflows/e2e.yml` | `master` push + `workflow_dispatch` 트리거, artifact 업로드 |
-
-### E2E 테스트 범위 제한
-
-- Firebase 인증 필요한 캔버스 편집/저장 흐름은 초기 범위 제외
-- 모바일 터치 드래그 실제 동작 검증 제외 (Playwright 제한)
-- 레이아웃 렌더링 검증에 집중
-
-### Sprint 8 예정 (이번 Sprint 범위 아님)
-
-- 모바일 미리보기 전용 뷰 (Sprint 5 이월)
-- AI 이미지 생성 (Claude API + Firebase Functions 프록시)
-- Firebase Blaze 플랜 전환
-- Firestore 보안 규칙 파일 업데이트
-- SharePage CSS 변수 마이그레이션
-<<<<<<< HEAD
-- Firebase 인증 기반 E2E 테스트 (캔버스 편집/저장 흐름)
+PR: https://github.com/brogi9322-ai/pop-maker/pull/15

@@ -5,6 +5,26 @@
 
 ---
 
+### 프로덕션 배포 — Sprint 8 (2026-03-16)
+
+포함 스프린트: Sprint 8
+PR: https://github.com/brogi9322-ai/pop-maker/pull/16
+
+- ✅ lint 통과 (경고 0건)
+- ✅ test 통과 (222개, 16개 파일)
+- ✅ build 성공
+- ✅ main merge → GitHub Actions 자동 배포
+
+배포 URL: https://pop-maker-9209f.web.app
+
+수동 검증 필요 항목:
+- ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
+- ⬜ 캔버스 편집 기본 흐름 (요소 추가 → 이동 → 저장)
+- ⬜ Firebase Firestore 읽기/쓰기 동작 확인 (콘솔 에러 없음)
+- ⬜ 커밋 시 pre-commit 훅(husky lint-staged) 정상 실행 확인
+
+---
+
 ## 프로덕션 배포 (Sprint 6+7) — 2026-03-15
 
 PR: https://github.com/brogi9322-ai/pop-maker/pull/13
@@ -22,6 +42,9 @@ PR: https://github.com/brogi9322-ai/pop-maker/pull/13
 - ✅ npm test — 135 tests 통과
 - ✅ npm run build — 성공
 - ✅ npx playwright test — 19 passed, 7 skipped (의도된 skip)
+- ✅ GitHub Actions CI — success
+- ✅ GitHub Actions E2E Tests — success
+- ✅ Firebase Hosting 자동 배포 완료
 
 수동 검증 필요 항목:
 - ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인

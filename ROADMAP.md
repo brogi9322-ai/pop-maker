@@ -21,7 +21,7 @@
 |------|------|
 | 전체 진행률 | 100% (Phase 1) |
 | 현재 Phase | Phase 1 |
-| 현재 Sprint | Sprint 7 ✅ 완료 |
+| 현재 Sprint | Sprint 8 ✅ 완료 |
 
 ---
 
@@ -101,6 +101,19 @@
 - ✅ `e2e/mobile.spec.js` — 375px 모바일 레이아웃 검증 (4개 테스트, 가로 스크롤 테스트는 Sprint 8 이월)
 - ✅ `.github/workflows/e2e.yml` — 배포 완료 후 E2E 자동 실행 CI workflow
 - ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 8 이월
+
+### Sprint 8: 테스트 커버리지 확대 및 CI/CD 자동화 ✅
+
+- ✅ 단위 테스트 추가: `useAuth.js` (16개 케이스 — localStorage, login, logout)
+- ✅ 단위 테스트 추가: `useEditor.js` (5개 케이스 — context 반환, 에러 throw)
+- ✅ 컴포넌트 테스트 추가: `TemplatePanel.jsx` (9개 케이스 — 카테고리 필터, 선택 콜백)
+- ✅ 컴포넌트 테스트 추가: `AssetPanel.jsx` (7개 케이스 — 탭 전환, 에셋 클릭)
+- ✅ 컴포넌트 테스트 추가: `PropsPanel.jsx` (13개 케이스 — null 선택, 텍스트/이미지 UI)
+- ✅ 컴포넌트 테스트 추가: `SharePage.jsx` (9개 케이스 — 로딩/에러/정상/숨김 처리)
+- ✅ 통합 테스트 추가: `EditorContext.jsx` (28개 케이스 — 핸들러, 키보드 단축키)
+- ✅ husky + lint-staged: pre-commit 시 eslint --fix 자동 실행
+- ✅ `docs/ci-policy.md` 재작성: 실제 스택(Vite/Vitest/Firebase) 기준으로 정확히 기술
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 9 이월
 
 ---
 
