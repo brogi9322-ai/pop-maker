@@ -1,0 +1,42 @@
+name: E2E Tests
+
+on:
+  # master 배포 완료 후 자동 실행
+  push:
+    branches: [master]
+  # 수동 트리거 (배포 후 즉시 검증 필요 시)
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: Playwright 브라우저 설치
+        run: npx playwright install chromium --with-deps
+
+      - name: E2E 테스트 실행
+        run: npx playwright test
+        env:
+          # 공유 페이지 테스트용 문서 ID (설정 안 하면 share 테스트 자동 skip)
+          E2E_SHARE_ID: ${{ secrets.E2E_SHARE_ID }}
+
+      - name: Playwright 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
