@@ -7,7 +7,20 @@
 
 ## 현재 미완료 항목
 
-(초기 상태 — 스프린트/핫픽스 완료 후 sprint-close/hotfix-close agent가 업데이트합니다.)
+### [2026-03-15] Hotfix — Firebase Hosting 자동 배포 CI 추가
+
+PR: https://github.com/brogi9322-ai/pop-maker/pull/12
+
+| 항목 | 상태 |
+|------|------|
+| `FIREBASE_SERVICE_ACCOUNT_POP_MAKER_9209F` GitHub Secret 등록 | ⬜ 수동 작업 필요 |
+| master merge 후 GitHub Actions `deploy` 잡 실행 확인 | ⬜ 수동 검증 필요 |
+| Firebase Hosting URL 정상 접속 확인 | ⬜ 수동 검증 필요 |
+| develop 브랜치에 이 변경사항 역머지 | ⬜ 수동 작업 필요 |
+
+**Secret 설정 방법**:
+- 방법 1: `firebase init hosting:github` 실행 (자동 등록)
+- 방법 2: GitHub → Settings → Secrets and variables → Actions → `FIREBASE_SERVICE_ACCOUNT_POP_MAKER_9209F` 추가
 
 ---
 
