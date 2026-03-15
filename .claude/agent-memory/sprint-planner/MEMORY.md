@@ -32,7 +32,7 @@
 | Sprint 4 | AI 이미지 생성 (Claude API + Functions) | ✅ 완료 | 2026-03-15 |
 | Sprint 5 | 공유 + UI 폴리싱 | ✅ 완료 | 2026-03-15 |
 | Sprint 6 | 테스트 커버리지 확대 + CI/CD 개선 | ✅ 완료 | 2026-03-15 |
-| Sprint 7 | Playwright E2E 테스트 도입 — 배포 후 검증 자동화 | 🔄 진행 중 | — |
+| Sprint 7 | Playwright E2E 테스트 도입 — 배포 후 검증 자동화 | ✅ 완료 | 2026-03-15 |
 
 **다음 스프린트 번호: 8**
 
@@ -57,6 +57,8 @@
 - `useEffect` 내 `setState` 직접 호출 → lint 오류 발생 (Sprint 2 수정 사례)
 - `useCallback` 의존성 배열 누락 → exhaustive-deps 경고 발생
 - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
+- Playwright E2E 파일(`e2e/*.spec.js`)은 Vitest가 수집하면 오류 발생 → `vite.config.js`의 `test.exclude`에 `e2e/**` 패턴 추가 필수 (Sprint 7 수정 사례)
+- Playwright 및 Node.js 환경 파일은 ESLint의 browser globals 설정과 충돌 → `eslint.config.js`의 `globalIgnores`에 `e2e/`, `playwright.config.js` 추가 필수 (Sprint 7 수정 사례)
 
 ## Sprint 5 완료 요약 (2026-03-15)
 
@@ -83,6 +85,22 @@ PR: https://github.com/brogi9322-ai/pop-maker/pull/9
 - ✅ 테스트 커버리지 실측: lines 86.02%, branches 85.25%, funcs 81.81%
 - ✅ Firebase 목킹 패턴 확립 (`vi.mock('../firebase')` + `vi.mock('firebase/firestore')`)
 - ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 7 이월
+
+## Sprint 7 완료 요약 (2026-03-15)
+
+- ✅ `@playwright/test` 패키지 추가 (devDependencies)
+- ✅ `playwright.config.js` — baseURL, chromium + mobile-chrome 프로젝트, retries:2
+- ✅ `e2e/smoke.spec.js` — 앱 기본 로딩 및 UI 렌더링 검증 6개 테스트
+- ✅ `e2e/share.spec.js` — 공유 링크 검증, E2E_SHARE_ID 미설정 시 graceful skip
+- ✅ `e2e/mobile.spec.js` — 모바일 레이아웃 검증 4개 테스트
+- ✅ `.github/workflows/e2e.yml` — master push + workflow_dispatch, artifact 업로드
+- ✅ `eslint.config.js` — e2e/, playwright.config.js, coverage/ globalIgnores 추가
+- ✅ `vite.config.js` — exclude: ['e2e/**'] 추가 (Playwright 파일 Vitest 수집 방지)
+- ⬜ 모바일 가로 스크롤 overflow 버그 수정 → Sprint 8 이월
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 8 이월 (Sprint 6에서 이월)
+
+로컬 테스트 결과: 19 passed, 7 skipped (의도된 skip)
+Vitest 테스트: 60개 통과
 
 ## Sprint 7 계획 요약 (2026-03-15)
 

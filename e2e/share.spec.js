@@ -24,9 +24,6 @@ test.describe('/share/:id 공개 페이지', () => {
 
   test('잘못된 공유 ID는 에러 상태를 표시한다', async ({ page }) => {
     await page.goto('/share/invalid-nonexistent-id-12345');
-    // 에러 메시지 또는 404 상태
-    const body = await page.content();
-    const hasError = body.includes('찾을 수 없') || body.includes('존재하지') || body.includes('오류') || body.includes('error');
     // 최소한 앱이 크래시 없이 로드되어야 함
     await expect(page.locator('body')).toBeVisible();
   });
