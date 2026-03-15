@@ -22,6 +22,9 @@ PR: https://github.com/brogi9322-ai/pop-maker/pull/13
 - ✅ npm test — 135 tests 통과
 - ✅ npm run build — 성공
 - ✅ npx playwright test — 19 passed, 7 skipped (의도된 skip)
+- ✅ GitHub Actions CI — success
+- ✅ GitHub Actions E2E Tests — success
+- ✅ Firebase Hosting 자동 배포 완료
 
 수동 검증 필요 항목:
 - ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
