@@ -28,11 +28,13 @@
 |---------|------|------|--------|
 | Sprint 1 | 기본 제공 템플릿 10종 + 개발 프로세스 수립 | ✅ 완료 | 2026-03-15 이전 |
 | Sprint 2 | Undo/Redo, 레이어 패널, 탭 전환, 캔버스 직접 입력 | ✅ 완료 | 2026-03-15 |
-| Sprint 3 | 내보내기 최적화 + Firebase Hosting 배포 | ⬜ 예정 | — |
-| Sprint 4 | AI 이미지 생성 (Claude API + Functions) | ⬜ 예정 | — |
-| Sprint 5 | 공유 + UI 폴리싱 | ⬜ 예정 | — |
+| Sprint 3 | 내보내기 최적화 + Firebase Hosting 배포 | ✅ 완료 | 2026-03-15 |
+| Sprint 4 | AI 이미지 생성 (Claude API + Functions) | ✅ 완료 | 2026-03-15 |
+| Sprint 5 | 공유 + UI 폴리싱 | ✅ 완료 | 2026-03-15 |
+| Sprint 6 | 테스트 커버리지 확대 + CI/CD 개선 | ✅ 완료 | 2026-03-15 |
+| Sprint 7 | Playwright E2E 테스트 도입 — 배포 후 검증 자동화 | 🔄 진행 중 | — |
 
-**다음 스프린트 번호: 3**
+**다음 스프린트 번호: 8**
 
 ## 브랜치 전략
 
@@ -56,9 +58,57 @@
 - `useCallback` 의존성 배열 누락 → exhaustive-deps 경고 발생
 - Firestore 문서에 base64 이미지 직접 저장 금지 (1MB 제한) → Storage URL 참조
 
-## 다음 스프린트(Sprint 3) 주요 항목
+## Sprint 5 완료 요약 (2026-03-15)
 
-- PNG 내보내기 최적화 (3초 이내)
-- PDF 내보내기 품질 개선
-- Firebase Hosting 배포 설정 및 GitHub Actions 자동 배포
-- JSON 템플릿 내보내기/가져오기
+- ✅ 공개 템플릿 공유 (`isPublic` + `/share/:id` 읽기 전용 미리보기)
+- ✅ 온보딩 힌트 (localStorage `onboardingDone` 저장)
+- ✅ 로딩 상태 개선 (savingOp 상태 + 전체화면 오버레이)
+- ✅ 에러 메시지 구체화 (`getErrorMessage` 함수, EditorContext)
+- ✅ EditorContext 분리 (`src/context/EditorContext.jsx`)
+- ⬜ Firestore 보안 규칙 파일 업데이트 — 다음 배포 시 반영 필요
+- ⬜ 모바일 미리보기 전용 뷰 — Sprint 6으로 이월
+
+PR: https://github.com/brogi9322-ai/pop-maker/pull/9
+
+## Sprint 6 완료 요약 (2026-03-15)
+
+- ✅ 신규 테스트 5개 파일 추가 (135개 테스트 전체 통과)
+  - `src/utils/id.test.js`, `src/utils/storage.test.js`
+  - `src/components/BanplusModal.test.jsx`, `src/components/SavedTemplatesModal.test.jsx`
+  - `src/components/LayerPanel.test.jsx`
+- ✅ `@vitest/coverage-v8` 패키지 추가
+- ✅ `vite.config.js` 커버리지 임계값 추가 (lines 75%, branches 65%)
+- ✅ `.github/workflows/ci.yml`: `npm run test:coverage` + artifact 업로드
+- ✅ `eslint.config.js`: `coverage/` 폴더 제외
+- ✅ 테스트 커버리지 실측: lines 86.02%, branches 85.25%, funcs 81.81%
+- ✅ Firebase 목킹 패턴 확립 (`vi.mock('../firebase')` + `vi.mock('firebase/firestore')`)
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 7 이월
+
+## Sprint 7 계획 요약 (2026-03-15)
+
+### 목표: Playwright E2E 테스트 도입 — 배포 후 수동 검증 완전 자동화
+
+### 주요 산출물
+
+| 파일 | 내용 |
+|------|------|
+| `playwright.config.js` | baseURL(https://pop-maker-9209f.web.app), chromium + mobile-chrome 프로젝트, retries:2 |
+| `e2e/smoke.spec.js` | 앱 접속 및 기본 UI 렌더링 검증 |
+| `e2e/share.spec.js` | `/share/:id` 공개 페이지 접근 검증, `E2E_SHARE_ID` 미설정 시 graceful skip |
+| `e2e/mobile.spec.js` | 375px 모바일 레이아웃 검증 (하단 탭, 패널 전환) |
+| `.github/workflows/e2e.yml` | `master` push + `workflow_dispatch` 트리거, artifact 업로드 |
+
+### E2E 테스트 범위 제한
+
+- Firebase 인증 필요한 캔버스 편집/저장 흐름은 초기 범위 제외
+- 모바일 터치 드래그 실제 동작 검증 제외 (Playwright 제한)
+- 레이아웃 렌더링 검증에 집중
+
+### Sprint 8 예정 (이번 Sprint 범위 아님)
+
+- 모바일 미리보기 전용 뷰 (Sprint 5 이월)
+- AI 이미지 생성 (Claude API + Firebase Functions 프록시)
+- Firebase Blaze 플랜 전환
+- Firestore 보안 규칙 파일 업데이트
+- SharePage CSS 변수 마이그레이션
+- Firebase 인증 기반 E2E 테스트 (캔버스 편집/저장 흐름)

@@ -19,9 +19,9 @@
 
 | 항목 | 내용 |
 |------|------|
-| 전체 진행률 | 75% |
+| 전체 진행률 | 97% |
 | 현재 Phase | Phase 1 |
-| 다음 마일스톤 | Firestore 저장 안정화 + Sprint 4 AI 이미지 생성 |
+| 현재 Sprint | Sprint 7 🔄 진행 중 |
 
 ---
 
@@ -73,9 +73,31 @@
 
 ### Sprint 5: 공유 + UI 폴리싱 (P2)
 
-- ⬜ 공개 템플릿 공유 (`isPublic` 플래그 + 공유 링크)
-- ⬜ 모바일 미리보기 (저장된 작업물 조회 전용)
-- ⬜ UI 폴리싱 — 온보딩 힌트, 에러 토스트, 로딩 상태
+- ✅ 공개 템플릿 공유 (`isPublic` 플래그 + 공유 링크 `/share/:id`)
+- ⬜ Firestore 보안 규칙 파일 업데이트 (다음 배포 시 반영)
+- ⬜ 모바일 미리보기 (Sprint 7으로 이월)
+- ✅ UI 폴리싱 — 온보딩 힌트 (빈 캔버스 진입 시 사용 가이드)
+- ✅ UI 폴리싱 — 로딩 상태 개선 (저장/내보내기 중 시각적 피드백)
+- ✅ UI 폴리싱 — 에러 메시지 구체화 (상황별 구체적 안내 메시지)
+
+### Sprint 6: 테스트 커버리지 확대 + CI/CD 개선 ✅
+
+- ✅ 단위 테스트 추가: `id.js` (genId 함수)
+- ✅ 단위 테스트 추가: `storage.js` (순수 함수 + Firestore CRUD, Firebase 목킹)
+- ✅ 컴포넌트 테스트 추가: `BanplusModal.jsx` (로그인 폼, 유효성 검사 연동)
+- ✅ 컴포넌트 테스트 추가: `SavedTemplatesModal.jsx` (탭 전환, 공개 토글, 링크 복사)
+- ✅ 컴포넌트 테스트 추가: `LayerPanel.jsx` (잠금/숨기기/이름 변경)
+- ✅ CI 개선: 커버리지 리포트 artifact 업로드, 커버리지 임계값(lines 75%) 설정
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 7 이월
+
+### Sprint 7: Playwright E2E 테스트 도입 — 배포 후 검증 자동화 🔄
+
+- ⬜ `@playwright/test` 의존성 추가 및 `playwright.config.js` 설정
+- ⬜ `e2e/smoke.spec.js` — 앱 접속, 기본 UI 렌더링 검증
+- ⬜ `e2e/share.spec.js` — `/share/:id` 공개 페이지 접근 검증
+- ⬜ `e2e/mobile.spec.js` — 375px 모바일 레이아웃 검증
+- ⬜ `.github/workflows/e2e.yml` — 배포 완료 후 E2E 자동 실행 CI workflow
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 (Sprint 6 이월)
 
 ---
 
