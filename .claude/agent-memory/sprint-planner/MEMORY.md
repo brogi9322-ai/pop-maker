@@ -31,7 +31,7 @@
 | Sprint 3 | Firebase Hosting 배포 + 내보내기 최적화 + JSON 가져오기/내보내기 | ✅ 완료 | 2026-03-15 |
 | Sprint 4 | 반응형 모바일 지원 + 터치 드래그 + Context API 리팩토링 | ✅ 완료 | 2026-03-15 |
 | Sprint 5 | 공개 템플릿 공유 + UI 폴리싱 (온보딩, 에러, 로딩) | ✅ 완료 | 2026-03-15 |
-| Sprint 6 | 테스트 커버리지 확대 + CI/CD 개선 | 🔄 진행 중 | — |
+| Sprint 6 | 테스트 커버리지 확대 + CI/CD 개선 | ✅ 완료 | 2026-03-15 |
 
 **다음 스프린트 번호: 7**
 
@@ -68,6 +68,20 @@
 - ⬜ 모바일 미리보기 전용 뷰 — Sprint 6으로 이월
 
 PR: https://github.com/brogi9322-ai/pop-maker/pull/9
+
+## Sprint 6 완료 요약 (2026-03-15)
+
+- ✅ 신규 테스트 5개 파일 추가 (135개 테스트 전체 통과)
+  - `src/utils/id.test.js`, `src/utils/storage.test.js`
+  - `src/components/BanplusModal.test.jsx`, `src/components/SavedTemplatesModal.test.jsx`
+  - `src/components/LayerPanel.test.jsx`
+- ✅ `@vitest/coverage-v8` 패키지 추가
+- ✅ `vite.config.js` 커버리지 임계값 추가 (lines 75%, branches 65%)
+- ✅ `.github/workflows/ci.yml`: `npm run test:coverage` + artifact 업로드
+- ✅ `eslint.config.js`: `coverage/` 폴더 제외
+- ✅ 테스트 커버리지 실측: lines 86.02%, branches 85.25%, funcs 81.81%
+- ✅ Firebase 목킹 패턴 확립 (`vi.mock('../firebase')` + `vi.mock('firebase/firestore')`)
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 7 이월
 
 ## Sprint 6 계획 요약 (2026-03-15)
 
