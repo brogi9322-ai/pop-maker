@@ -2,6 +2,7 @@ import { createContext, useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useHistory } from '../hooks/useHistory';
 import { useToast } from '../hooks/useToast';
+import { useAiAssets } from '../hooks/useAiAssets';
 import { CANVAS_SIZES } from '../data/templates';
 import { saveTemplate, updateTemplate } from '../utils/storage';
 import { genId } from '../utils/id';
@@ -26,6 +27,7 @@ function getErrorMessage(e, action) {
 
 export function EditorProvider({ children }) {
   const { isBanplus, bizNumber, login, logout } = useAuth();
+  const { aiAssets, generating: aiGenerating, generateAsset, removeAsset: removeAiAsset } = useAiAssets();
 
   const [template, setTemplate] = useState(null);
   const [canvasSize, setCanvasSize] = useState(CANVAS_SIZES[0]);
@@ -444,6 +446,27 @@ export function EditorProvider({ children }) {
     }
   }
 
+  /**
+   * Claude API를 호출해 SVG 에셋을 생성한다.
+   * 성공 시 toast.success, 실패 시 toast.error 표시.
+   * @param {string} prompt - 생성할 아이콘 설명
+   */
+  async function handleGenerateAsset(prompt) {
+    await generateAsset(
+      prompt,
+      (errMsg) => toast.error(errMsg),
+      () => toast.success('AI 에셋이 생성되었습니다.'),
+    );
+  }
+
+  /**
+   * AI 생성 에셋을 목록에서 삭제한다.
+   * @param {string} id - 삭제할 에셋 ID
+   */
+  function handleRemoveAiAsset(id) {
+    removeAiAsset(id);
+  }
+
   const value = {
     // 상태
     template, canvasSize, setCanvasSize, selectedId, setSelectedId,
@@ -472,6 +495,8 @@ export function EditorProvider({ children }) {
     handleSaveTemplate, handleLoadDefaultDesign, handleLoadTemplate,
     handleSavePng, handleSavePdf, handleExportJson, handleImportJson,
     handlePrint, handleBanplusLogin,
+    // AI 에셋
+    aiAssets, aiGenerating, handleGenerateAsset, handleRemoveAiAsset,
   };
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
