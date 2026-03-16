@@ -27,13 +27,8 @@
 - 사업자번호 + ID 입력으로 밴플러스 인증 → 약국 전용 기능 제공
 - 작업물 Firebase 클라우드 저장 · 불러오기
 
-### 관리자 *(예정)*
-- `/admin` 관리자 전용 페이지 (로그인 필요)
-- 이미지 에셋 · 서버 템플릿 관리
-- 사용자 및 작업물 조회
-
-### AI 이미지 생성 *(예정)*
-- 텍스트 프롬프트 → Claude API → 이미지 생성 후 POP에 삽입
+### AI SVG 에셋 생성
+- 텍스트 프롬프트 → Claude API → SVG 아이콘 생성 후 에셋 패널에 추가 · 캔버스에 삽입
 
 ---
 
@@ -48,7 +43,7 @@
 | 인증 | Firebase Authentication |
 | 서버 로직 | Firebase Functions (Node.js) |
 | 내보내기 | html2canvas + jsPDF |
-| AI 생성 | Anthropic Claude API *(예정)* |
+| AI 생성 | Anthropic Claude API |
 
 ---
 

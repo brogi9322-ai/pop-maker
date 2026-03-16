@@ -12,7 +12,7 @@
 - **캔버스**: 커스텀 HTML/CSS 렌더러 (직접 구현, Fabric.js 미사용)
 - **데이터베이스**: Firebase Firestore
 - **파일 저장소**: Firebase Storage
-- **인증**: Firebase Auth (관리자) + 사업자번호+ID (사용자, 추후 Auth 전환 예정)
+- **인증**: 사업자번호+ID (사용자, 추후 Firebase Auth 전환 예정)
 - **서버 로직**: Firebase Functions (Node.js) — Claude API 프록시 용도, Blaze 플랜 필요
 - **내보내기**: html2canvas + jsPDF
 - **배포**: Firebase Hosting (Spark 무료 플랜)
