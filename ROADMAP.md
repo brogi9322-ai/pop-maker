@@ -19,9 +19,9 @@
 
 | 항목 | 내용 |
 |------|------|
-| 전체 진행률 | 100% (Phase 1) |
+| 전체 진행률 | Phase 1 기능 완성 → AI 기능 확장 중 |
 | 현재 Phase | Phase 1 |
-| 현재 Sprint | Sprint 8 ✅ 완료 |
+| 현재 Sprint | Sprint 9 ✅ 완료 |
 
 ---
 
@@ -113,7 +113,18 @@
 - ✅ 통합 테스트 추가: `EditorContext.jsx` (28개 케이스 — 핸들러, 키보드 단축키)
 - ✅ husky + lint-staged: pre-commit 시 eslint --fix 자동 실행
 - ✅ `docs/ci-policy.md` 재작성: 실제 스택(Vite/Vitest/Firebase) 기준으로 정확히 기술
-- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 9 이월
+- ⬜ Firebase Hosting 프리뷰 채널 배포 CI 통합 → Sprint 10 이월
+
+### Sprint 9: Claude AI를 이용한 SVG 에셋 생성 ✅
+
+- ✅ `@anthropic-ai/sdk` 의존성 추가 (브라우저 직접 호출, `dangerouslyAllowBrowser: true`)
+- ✅ `src/utils/claudeSvg.js` — Claude API 호출 + SVG 추출 + DOMPurify sanitize
+- ✅ `src/hooks/useAiAssets.js` — AI 생성 에셋 상태 관리 (localStorage 영속)
+- ✅ `AssetPanel.jsx` — "AI 생성" 탭 UI 추가 (입력창, 생성 버튼, 로딩, 삭제)
+- ✅ `VITE_CLAUDE_API_KEY` 미설정 시 기능 비활성화 + 안내 메시지 (기존 앱 영향 없음)
+- ✅ `.env.example` 업데이트, `docs/prd.md` 섹션 6.6 업데이트
+- ✅ 신규 훅/유틸 단위 테스트 추가 (총 257개 테스트 통과)
+- ⬜ Firebase Hosting 프리뷰 채널 CI 통합 (Sprint 10 이월)
 
 ---
 
@@ -134,7 +145,7 @@
 | 히스토리 메모리 과다 | 중 | 50단계 이상 자동 삭제 |
 | Firebase 무료 플랜 쿼터 초과 | 낮 | 초기 사용자 규모에서는 미해당, 증가 시 Blaze 플랜 전환 |
 | 내보내기 속도 (html2canvas) | 중 | `canvas.toDataURL()` 우선 사용 |
-| 프론트엔드 Claude API 키 노출 | 높 | AI 기능 구현 시 프록시 서버(Firebase Functions) 경유 |
+| 프론트엔드 Claude API 키 노출 | 높 | VITE_CLAUDE_API_KEY는 gitignore된 .env에만 저장. Blaze 플랜 전환 시 Firebase Functions 프록시로 이전 예정 |
 
 ---
 
@@ -144,7 +155,7 @@
 |---------|------|
 | Phase 1 편집 기능 완성 | 🔄 진행 중 |
 | MVP Firebase Hosting 배포 | ✅ 완료 (https://pop-maker-9209f.web.app) |
-| AI 이미지 생성 기능 추가 | 📋 예정 |
+| AI SVG 에셋 생성 기능 추가 | ✅ 완료 (Sprint 9) |
 | 밴플러스 서버 실인증 연동 | 📋 예정 |
 
 ---
