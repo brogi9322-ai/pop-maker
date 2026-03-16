@@ -199,13 +199,22 @@
 | 사용자 목록 조회 | 가입 사용자 목록, 밴플러스 인증 여부, 최종 접속일 | ⬜ 예정 |
 | 사용자 작업물 조회 | 특정 사용자의 저장된 POP 목록 조회 | ⬜ 예정 |
 
-### 6.6 AI 이미지 생성 (P1)
+### 6.6 AI SVG 에셋 생성 (P1)
 
 | 기능 | 설명 | 상태 |
 |------|------|------|
-| AI 이미지 생성 | 서버 제공 이미지가 마음에 들지 않을 때 텍스트 프롬프트로 원하는 이미지 생성 후 POP에 삽입 | 📋 예정 |
+| AI SVG 생성 | 텍스트 프롬프트로 SVG 아이콘을 생성하고 AssetPanel "AI 생성" 탭에 추가하여 캔버스에 삽입 | ✅ Sprint 9 구현 완료 |
 
-> 보안 주의: Claude API 키는 Firebase Functions를 프록시로 사용하여 클라이언트에 노출되지 않도록 함.
+**구현 결정 사항 (Sprint 9)**
+
+- **Spark 플랜 유지 결정으로 Firebase Functions 미사용.** 클라이언트에서 `@anthropic-ai/sdk`를 통해 직접 Anthropic API 호출.
+- API 키는 `VITE_CLAUDE_API_KEY` 환경변수로 관리 (Vite 빌드 번들에 포함됨 — 내부 도구 용도로 허용된 의도적 결정).
+- Blaze 플랜 전환 시 Firebase Functions 프록시로 이전하여 보안 강화 예정.
+- SVG 생성 결과는 DOMPurify로 sanitize 후 base64 data URL로 변환 (XSS 방어).
+- `dangerouslySetInnerHTML` 미사용: `<img src={dataUrl}>` 방식으로 렌더링.
+- 생성된 에셋은 localStorage에 영속 저장 (최대 50개 제한).
+
+> 보안 고려사항: `VITE_CLAUDE_API_KEY`는 브라우저에 노출되므로 운영 환경에서 API 키 사용량 모니터링 필수. 키 유출 방지를 위해 `.env` 파일은 반드시 `.gitignore`에 포함되어 있어야 함.
 
 ---
 

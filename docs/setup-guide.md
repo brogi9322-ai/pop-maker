@@ -46,8 +46,8 @@ VITE_FIREBASE_STORAGE_BUCKET=...
 VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 
-# Claude API — AI 이미지 생성 기능 (Firebase Functions에서만 사용, 클라이언트 직접 사용 금지)
-# CLAUDE_API_KEY=...  → functions/.env 에 별도 설정
+# Claude AI SVG 생성 기능 (Sprint 9 추가) — 미설정 시 AI 생성 탭만 비활성화, 기존 기능 영향 없음
+VITE_CLAUDE_API_KEY=your_claude_api_key_here
 ```
 
 Firebase 값은 [Firebase Console](https://console.firebase.google.com/) → 프로젝트 설정 → 앱 등록에서 확인.
@@ -63,8 +63,19 @@ Firebase 값은 [Firebase Console](https://console.firebase.google.com/) → 프
 | `firebase` | Firestore, Auth, Storage, Hosting |
 | `html2canvas` | 캔버스 → PNG/PDF 내보내기 |
 | `jspdf` | PDF 생성 |
+| `@anthropic-ai/sdk` | Claude AI SVG 에셋 생성 (Sprint 9) |
 
 > `npm install` 실행 시 위 패키지들이 모두 설치됩니다.
+
+### @anthropic-ai/sdk 설치 (Claude AI SVG 생성 기능)
+
+```bash
+npm install @anthropic-ai/sdk
+```
+
+AI SVG 생성 기능을 사용하려면 `.env` 파일에 `VITE_CLAUDE_API_KEY`를 설정해야 합니다.
+API 키는 [Anthropic Console](https://console.anthropic.com/)에서 발급받을 수 있습니다.
+미설정 시 AssetPanel의 "AI 생성" 탭만 비활성화되며 기존 기능에는 영향이 없습니다.
 
 ---
 
@@ -258,13 +269,17 @@ Firebase Console → Hosting → Release History → 원하는 버전 "Rollback"
 
 ## 9. 외부 서비스
 
-### 9.1 Claude API (AI 이미지 생성 기능)
+### 9.1 Claude API (AI SVG 에셋 생성 기능, Sprint 9)
 
-> AI 이미지 생성 기능 구현 시 설정. Firebase Functions가 프록시 역할.
+> Spark 플랜 유지를 위해 Firebase Functions 미사용. 클라이언트에서 직접 Anthropic SDK 호출.
 
 1. [Anthropic Console](https://console.anthropic.com/)에서 API 키 발급
-2. `functions/.env`의 `CLAUDE_API_KEY`에 입력
-3. **클라이언트 `.env`에 절대 추가하지 말 것** — 키 노출 위험
+2. 프로젝트 루트의 `.env` 파일에 `VITE_CLAUDE_API_KEY=sk-ant-...` 추가
+3. 키는 Vite 빌드 번들에 포함됨 — 내부 도구 용도로 허용된 의도적 결정
+4. `.env` 파일은 반드시 `.gitignore`에 포함되어 있어야 함 (기본 설정됨)
+5. 미설정 시 "AI 생성" 탭만 비활성화, 기존 기능 정상 동작
+
+> **보안 참고**: Blaze 플랜 전환 시 Firebase Functions 프록시로 이전하여 키를 서버 측으로 옮길 예정.
 
 ---
 

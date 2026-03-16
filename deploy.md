@@ -5,6 +5,32 @@
 
 ---
 
+### Sprint 9: Claude AI를 이용한 SVG 에셋 생성 (2026-03-16)
+
+PR: https://github.com/brogi9322-ai/pop-maker/pull/18
+
+포함된 주요 기능:
+- AssetPanel "AI 생성" 탭 — 텍스트 프롬프트로 SVG 아이콘 생성
+- DOMPurify sanitize + base64 data URL 변환 (XSS 방어)
+- localStorage 영속 저장 (최대 50개)
+- API 키 미설정 시 graceful degradation
+
+검증 결과:
+- ✅ `npm run lint` 경고 없음
+- ✅ `npm test` 257개 통과
+- ✅ `npm run build` 성공
+
+수동 검증 필요 항목:
+- ⬜ `VITE_CLAUDE_API_KEY` 설정 후 AI 생성 탭 → 프롬프트 입력 → SVG 생성 동작 확인
+- ⬜ 생성된 에셋 클릭 시 캔버스 삽입 확인
+- ⬜ 에셋 삭제 버튼 동작 확인
+- ⬜ API 키 미설정 시 안내 메시지 표시 + 기존 탭 정상 동작 확인
+- ⬜ 새로고침 후 AI 에셋 localStorage 복원 확인
+
+상세 리뷰 결과: `docs/sprint/sprint9.md` 참조
+
+---
+
 ### Hotfix: Firestore 저장 불가 및 이미지 내보내기 선택 핸들 포함 버그 수정 (2026-03-16)
 
 PR: https://github.com/brogi9322-ai/pop-maker/pull/17

@@ -52,6 +52,8 @@ function AppLayout() {
     handleSaveTemplate, handleLoadDefaultDesign, handleLoadTemplate,
     handleSavePng, handleSavePdf, handleExportJson, handleImportJson,
     handlePrint, handleBanplusLogin,
+    // AI 에셋
+    aiAssets, aiGenerating, handleGenerateAsset, handleRemoveAiAsset,
   } = useEditor();
 
   return (
@@ -130,7 +132,13 @@ function AppLayout() {
           {leftTab === 'asset' && (
             <section className="panel" style={{ flex: 1 }}>
               <h2 className="panel-title">🖼 에셋</h2>
-              <AssetPanel onAddAsset={handleAddAsset} />
+              <AssetPanel
+                onAddAsset={handleAddAsset}
+                aiAssets={aiAssets}
+                generating={aiGenerating}
+                onGenerateAsset={handleGenerateAsset}
+                onRemoveAiAsset={handleRemoveAiAsset}
+              />
             </section>
           )}
 
