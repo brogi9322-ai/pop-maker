@@ -55,6 +55,11 @@ const CanvasEditor = forwardRef(function CanvasEditor(
     if (e.key === 'Escape') {
       editRef.current.textContent = ''; // React children 렌더링 전 DOM 클리어
       setEditingId(null);
+    } else if (e.key === 'Enter') {
+      // 기본 동작(<div> 삽입 + 캔버스 자동 스크롤) 차단 후 \n 문자만 삽입
+      // white-space: pre-wrap 이므로 \n 이 줄바꿈으로 렌더링됨
+      e.preventDefault();
+      document.execCommand('insertText', false, '\n');
     }
   }
 

@@ -5,54 +5,19 @@
 
 ---
 
-### 프로덕션 배포 — Sprint 8 (2026-03-16)
+### Hotfix: Firestore 저장 불가 및 이미지 내보내기 선택 핸들 포함 버그 수정 (2026-03-16)
 
-포함 스프린트: Sprint 8
-PR: https://github.com/brogi9322-ai/pop-maker/pull/16
+PR: https://github.com/brogi9322-ai/pop-maker/pull/17
 
-- ✅ lint 통과 (경고 0건)
-- ✅ test 통과 (222개, 16개 파일)
+- ✅ 코드 리뷰 완료
+- ✅ lint 통과
+- ✅ test 통과 (222개)
 - ✅ build 성공
-- ✅ main merge → GitHub Actions 자동 배포
 
-배포 URL: https://pop-maker-9209f.web.app
-
-수동 검증 필요 항목:
-- ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
-- ⬜ 캔버스 편집 기본 흐름 (요소 추가 → 이동 → 저장)
-- ⬜ Firebase Firestore 읽기/쓰기 동작 확인 (콘솔 에러 없음)
-- ⬜ 커밋 시 pre-commit 훅(husky lint-staged) 정상 실행 확인
-
----
-
-## 프로덕션 배포 (Sprint 6+7) — 2026-03-15
-
-PR: https://github.com/brogi9322-ai/pop-maker/pull/13
-배포 URL: https://pop-maker-9209f.web.app
-브랜치: develop → master
-
-포함된 주요 변경 사항:
-- Sprint 6: 테스트 커버리지 확대 — Vitest 기반 테스트 135개 통과 (9 test files)
-- Sprint 6: CI/CD 개선 — 커버리지 임계값(lines 75%), artifact 업로드
-- Sprint 7: Playwright E2E 테스트 도입 (chromium + mobile-chrome 프로젝트)
-- Sprint 7: `.github/workflows/e2e.yml` — master push 후 E2E 자동 실행
-
-사전 점검 결과:
-- ✅ npm run lint — 에러 0건
-- ✅ npm test — 135 tests 통과
-- ✅ npm run build — 성공
-- ✅ npx playwright test — 19 passed, 7 skipped (의도된 skip)
-- ✅ GitHub Actions CI — success
-- ✅ GitHub Actions E2E Tests — success
-- ✅ Firebase Hosting 자동 배포 완료
-
-수동 검증 필요 항목:
-- ⬜ https://pop-maker-9209f.web.app 정상 로딩 확인
-- ⬜ 캔버스 편집 기본 흐름 (요소 추가 → 이동 → 저장)
-- ⬜ 공유 링크 `/share/:id` 정상 접근
-- ⬜ 모바일(375px)에서 하단 탭 전환 및 터치 드래그 동작
-- ⬜ GitHub Actions에서 E2E 워크플로우 자동 실행 확인
-- ⬜ GitHub Secret `E2E_SHARE_ID` 설정 후 share.spec.js 전체 테스트 실행 확인
+- ⬜ 수동 검증 필요 항목:
+  - Firebase Hosting 배포 후 Firestore 저장 기능 동작 확인 (콘솔 PERMISSION_DENIED 에러 없음)
+  - PNG/PDF 내보내기 시 선택 핸들(점선 테두리, 리사이즈 핸들) 미포함 확인
+  - `firebase deploy --only firestore:rules` 또는 전체 배포로 Firestore 규칙 반영 확인
 
 ---
 

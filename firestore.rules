@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 템플릿 컬렉션: 비인증 사용자(localStorage userId)도 읽기/쓰기 허용
+    // 추후 Firebase Auth 도입 시 userId 기반 권한 제어로 강화 예정
+    match /templates/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
